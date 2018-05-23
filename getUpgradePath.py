@@ -14,9 +14,10 @@ def callaws(arg, dest, engine):
   for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
     k2 = k['EngineVersion']
     if ((k2 == dest) or (callaws(k2, dest, engine) == 1)):
-      print ('From: ' + arg + ' To:' + k2)
+      print ('Upgrade From: ' + arg + ' To: ' + k2)
       return 1
-      
+  return 0
+
 if len(sys.argv) == 3:
   engine = 'postgres'
 elif len(sys.argv) == 4:
