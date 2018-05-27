@@ -3,11 +3,6 @@ Python script to find all possible Upgrade paths (from one Version to another) f
 
 Sample Runs
 ```
->python getUpgradePath.py 9.3.12 9.6.6
-From: 9.5.10 To:9.6.6
-From: 9.4.15 To:9.5.10
-From: 9.3.12 To:9.4.15
-
 >python getUpgradePath.py 9.3.12 10.3 postgres
 Upgrade From: 9.6.8 To: 10.3
 Upgrade From: 9.5.12 To: 9.6.8
