@@ -1,3 +1,6 @@
+# This Python script uses boto3 so please ensure that is already installed
+# and working in order, for this script to work as expected
+
 import sys
 import boto3
 
@@ -12,7 +15,7 @@ def callaws(arg, dest, engine):
   )
 
   # If there are no Upgrade paths, return right away
-  if (len(resp['DBEngineVersions'][0]['ValidUpgradeTarget']) == 0):
+  if (not resp['DBEngineVersions']):
     return 0
 
   # Until caching comes in, process the list in reversed order (optimal)
