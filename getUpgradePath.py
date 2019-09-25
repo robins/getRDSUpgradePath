@@ -4,7 +4,7 @@
 import sys
 import boto3
 
-def callaws(arg, dest, engine):
+def callaws(arg, dest, engine, just_check):
 
   client = boto3.client('rds')
 
@@ -18,10 +18,13 @@ def callaws(arg, dest, engine):
   if (not resp['DBEngineVersions']):
     return 0
 
+  if (just_check):
+    return 1
+
   # Until caching comes in, process the list in reversed order (optimal)
   for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
     k2 = k['EngineVersion']
-    if ((k2 == dest) or (callaws(k2, dest, engine) == 1)):
+    if ((k2 == dest) or (callaws(k2, dest, engine, 0) == 1)):
       print ('Upgrade From: ' + arg + ' To: ' + k2)
       return 1
   return 0
@@ -36,5 +39,14 @@ else:
   print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres)')
   sys.exit()
 
-if (callaws(sys.argv[1], sys.argv[2], engine) == 0):
+if (callaws(sys.argv[1], '9.1', engine, 1) == 0):
+  print("Unable to find Upgrade path. Is the Source version supported in RDS?")
+  sys.exit() 
+
+if (callaws(sys.argv[2], '9.1', engine, 1) == 0):
+  print("Unable to find Upgrade path. Is the Target version supported in RDS?")
+  sys.exit()
+
+if ((callaws(sys.argv[2], '9.1', engine, 0) == 0) 
+  or (callaws(sys.argv[1], sys.argv[2], engine) == 0)):
   print("Unable to find Upgrade path")
