@@ -3,11 +3,11 @@ Python script to find all possible Upgrade paths (from one Version to another) f
 
 Sample Runs
 ```
->python getUpgradePath.py 9.3.12 10.3 postgres
-Upgrade From: 9.6.8 To: 10.3
-Upgrade From: 9.5.12 To: 9.6.8
-Upgrade From: 9.4.17 To: 9.5.12
-Upgrade From: 9.3.12 To: 9.4.17
+>python getUpgradePath.py 9.3.12 10.4 postgres
+Upgrade From: 9.6.9 To: 10.4
+Upgrade From: 9.5.13 To: 9.6.9
+Upgrade From: 9.4.18 To: 9.5.13
+Upgrade From: 9.3.12 To: 9.4.18
 
 >python getUpgradePath.py 5.5.46 5.7.21 mysql
 Upgrade From: 5.6.39 To: 5.7.21
@@ -27,10 +27,35 @@ Upgrade From: 10.0.17 To: 10.1.31
 >python getUpgradePath.py 9.6.3 9.6.6 aurora-postgresql
 Upgrade From: 9.6.3 To: 9.6.6
 
->python getUpgradePath.py 9.6.3 9.6.4
-Unable to find Upgrade path
+>python getUpgradePath.py 9.3.12 10.3 postgres
+========
+Unable to find Upgrade path from 9.3.12 to 10.3
+========
 
 >python getUpgradePath.py 9.3.12
-Syntax: python getUpgradePath.py v1 v2 [engine]
-Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres)
+Syntax: python getUpgradePath.py v1 v2 [engine] [1]
+Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Debug (1 or 0)
+
+(Sample output with Debug enabled)
+>python getUpgradePath.py 9.3.12 10.9 postgres 1
+
+Checking combination 9.3.12-10.9
+Valid targets: 9.4.23  9.4.21  9.4.20  9.4.19  9.4.18  9.4.17  9.4.15  9.4.14  9.4.12  9.4.11  9.4.9  9.4.7  9.3.25  9.3.24  9.3.23  9.3.22  9.3.20  9.3.19  9.3.17  9.3.16  9.3.14
+Cache: (9.3.12-9.4.23->1)  (9.3.12-9.4.21->1)  (9.3.12-9.4.20->1)  (9.3.12-9.4.19->1)  (9.3.12-9.4.18->1)  (9.3.12-9.4.17->1)  (9.3.12-9.4.15->1)  (9.3.12-9.4.14->1)  (9.3.12-9.4.12->1)  (9.3.12-9.4.11->1)  (9.3.12-9.4.9->1)
+(9.3.12-9.4.7->1)  (9.3.12-9.3.25->1)  (9.3.12-9.3.24->1)  (9.3.12-9.3.23->1)  (9.3.12-9.3.22->1)  (9.3.12-9.3.20->1)  (9.3.12-9.3.19->1)  (9.3.12-9.3.17->1)  (9.3.12-9.3.16->1)  (9.3.12-9.3.14->1)
+
+Checking combination 9.4.23-10.9
+Valid targets: 11.4  10.9  9.5.18
+Cache: (9.3.12-9.4.23->1)  (9.3.12-9.4.21->1)  (9.3.12-9.4.20->1)  (9.3.12-9.4.19->1)  (9.3.12-9.4.18->1)  (9.3.12-9.4.17->1)  (9.3.12-9.4.15->1)  (9.3.12-9.4.14->1)  (9.3.12-9.4.12->1)  (9.3.12-9.4.11->1)  (9.3.12-9.4.9->1)
+(9.3.12-9.4.7->1)  (9.3.12-9.3.25->1)  (9.3.12-9.3.24->1)  (9.3.12-9.3.23->1)  (9.3.12-9.3.22->1)  (9.3.12-9.3.20->1)  (9.3.12-9.3.19->1)  (9.3.12-9.3.17->1)  (9.3.12-9.3.16->1)  (9.3.12-9.3.14->1)  (9.4.23-11.4->1)  (9.4.23-1
+0.9->1)  (9.4.23-9.5.18->1)
+
+Checking combination 11.4-10.9
+Valid targets:
+Cache: (9.3.12-9.4.23->1)  (9.3.12-9.4.21->1)  (9.3.12-9.4.20->1)  (9.3.12-9.4.19->1)  (9.3.12-9.4.18->1)  (9.3.12-9.4.17->1)  (9.3.12-9.4.15->1)  (9.3.12-9.4.14->1)  (9.3.12-9.4.12->1)  (9.3.12-9.4.11->1)  (9.3.12-9.4.9->1)
+(9.3.12-9.4.7->1)  (9.3.12-9.3.25->1)  (9.3.12-9.3.24->1)  (9.3.12-9.3.23->1)  (9.3.12-9.3.22->1)  (9.3.12-9.3.20->1)  (9.3.12-9.3.19->1)  (9.3.12-9.3.17->1)  (9.3.12-9.3.16->1)  (9.3.12-9.3.14->1)  (9.4.23-11.4->1)  (9.4.23-1
+0.9->1)  (9.4.23-9.5.18->1)
+Upgrade From: 9.4.23 To: 10.9
+Upgrade From: 9.3.12 To: 9.4.23
+
 ```
