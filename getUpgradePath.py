@@ -66,6 +66,9 @@ def callaws(arg, dest, engine, just_check):
   # the target is expected to be a recent Minor Version
   for k in (k2):
     if ((k == dest) or (callaws(k, dest, engine, 0) == 1)):
+      if (k == dest):
+        print ("")
+        print ("===============================")
       print ('Upgrade From: ' + arg + ' To: ' + k)
       return 1
 
@@ -104,6 +107,8 @@ if ((len(sys.argv) == 5) and (sys.argv[4] == '1')):
 
 if (callaws(sys.argv[1], sys.argv[2], engine, 0) == 0):
   print ('')
-  print ('========')
+  print ("===============================")
   print("Unable to find Upgrade path from " + sys.argv[1] + ' to ' + sys.argv[2])
-  print ('========')
+  print ("===============================")
+else:
+  print ("===============================")
