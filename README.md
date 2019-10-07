@@ -1,5 +1,5 @@
 # getRDSUpgradePath
-Python script to find all possible Upgrade paths (from one Version to another) for AWS RDS Database Engines
+Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
 Sample Runs
 ```
