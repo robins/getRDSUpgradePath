@@ -6,29 +6,29 @@ def dexit(s):
    exit(1)
     
 def getPGVersionString(s):
-    if (s.count('.')==0):
-        a=int(s)
-        b=c=0
-        if ((a<10) or (a>20)):
-            dexit('Invalid PG Version String provided - ' + s)
-    elif (s.count('.')==1):
-        a,b = map(int,s.split(".", 1))
-        if ((a<9) or (b>20)):
-            dexit('Invalid PG Version String provided - ' + s)
-    elif (s.count('.')==2):
-        print ('2')
-        a,b,c = map(int, s.split(".", 1))
-        if ((b<9) or (b>20)):
-            dexit('Invalid PG Version String provided - ' + s)
-    else:
+    dots = s.count('.')
+    
+    if ( dots> 2):
         dexit('Invalid PG Version String provided - ' + s)
     
-    if (a<10):
-        versionnum = a*10000 + (b*100)
+    x = list(map(int, s.split('.', dots)))
+    
+    if (x[0]>=10):
+        if (dots>=2):
+            dexit('Invalid PG Version string provided - ' + s)
+        versionnum = int(x[0]*10000)
+        if (dots ==1):
+            versionnum += x[1]
     else:
-        versionnum = int(a*10000+b)
+        if (dots ==0 or dots >2):
+            dexit('Invalid PG Version string provided - ' + s)
+        versionnum = x[0]*10000 + (x[1]*100)
+        if (dots ==2):
+            versionnum += x[2]
 
-    print(versionnum)
+    
+    print (versionnum)
+
     
 
 # Currently the default engine is postgres, unless explicitly provided (as 4th Option)
