@@ -26,7 +26,7 @@ debug = 0
 def dexit(s):
   print (s)
   sys.exit(1)
-    
+
 def dprint(s):
   if (debug):
     print (s)
@@ -42,7 +42,7 @@ def callaws(arg, dest, engine, just_check):
       dprint ('Cache: Combination possible')
       return 1
     else:
-      dprint ('Cache: Combination ' + arg + '->' + dest + ' not possible')
+      dprint ('Cache: Combination not possible')
       return 0
 
   client = boto3.client('rds')
@@ -79,14 +79,6 @@ def callaws(arg, dest, engine, just_check):
   # the target is expected to be a recent Minor Version
   for k in (k2):
 
-#    if (engine == 'postgres'):
-
-      # Assuming that the program wouldn't generate (or the CLI wouldn't return) an
-      # invalid PG Version number: XXX
-#      if (abs(getPGVersionString(arg) - getPGVersionString(dest)) < 100):
-#        dprint ('We''re unnecessarily doing a minor version jump. Skip it')
-#        continue
-
     if ((k == dest) or (callaws(k, dest, engine, 0) == 1)):
       if (k == dest):
         print ("")
@@ -94,11 +86,8 @@ def callaws(arg, dest, engine, just_check):
       print ('Upgrade From: ' + arg + ' To: ' + k)
       return 1
 
-  # We keep an impossible set (denoted by -1), since we can't 
-  # 'optimize' this out owing to how pre v10 versions weren't 
-  # simple string comparisons for e.g. unless we use Postgres' 
-  # way of converting versions like v9.6.8 to an integer, 
-  # we can't know which came later between v9.6.8 and v10.1
+  # If we reached here, it means this upgrade path isn't possible
+  # We mark that and proceed with next possible combination
   v = arg + '-' + dest
   lookup[v] = -1
   return 0
@@ -106,16 +95,17 @@ def callaws(arg, dest, engine, just_check):
 # Currently the default engine is postgres, unless explicitly provided (as 4th Option)
 if len(sys.argv) >= 4:
   engine = sys.argv[3]
-
-if len(sys.argv) == 3:
+elif len(sys.argv) == 3:
   engine = 'postgres'
 
+# Ensure the version strings are syntactically valid and we aren't upgrading from newer to older version
 if (engine == 'postgres'):
   if (int(getPGVersionString(sys.argv[1])) < 0 or int(getPGVersionString(sys.argv[2]) < 0)):
     dexit('Source / Destination Version string seem invalid')
   if ((getPGVersionString(sys.argv[1]) > getPGVersionString(sys.argv[2]))):
     dexit ('Don''t need to check if we can upgrade from newer to older version: ' + sys.argv[1] + ' -> ' + sys.argv[2])
 
+# Basic bash argument count check
 if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
   print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
   print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Mode (1 for Debug, 2 for All Upgrade Options, 3 for both Debug & All Upgrade Options)')
@@ -133,13 +123,12 @@ if (callaws(sys.argv[2], 'y', engine, 1) == 0):
 if (len(sys.argv) == 5):
   if (sys.argv[4] == '1' or sys.argv[4] == '3'):
     debug = 1
-  elif (sys.argv[4] == '2'):
+  elif (sys.argv[4] >= '2'):
     allpaths = 1
 
 if (callaws(sys.argv[1], sys.argv[2], engine, 0) == 0):
   print ('')
   print ("===============================")
   print("Unable to find Upgrade path from " + sys.argv[1] + ' to ' + sys.argv[2])
-  print ("===============================")
-else:
-  print ("===============================")
+
+print ("===============================")
