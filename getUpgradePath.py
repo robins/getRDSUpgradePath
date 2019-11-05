@@ -42,7 +42,7 @@ def callaws(arg, dest, engine, just_check):
       dprint ('Cache: Combination possible')
       return 1
     else:
-      dprint ('Cache: Combination not possible')
+      dprint ('Cache: Combination ' + arg + '->' + dest + ' not possible')
       return 0
 
   client = boto3.client('rds')
@@ -60,11 +60,13 @@ def callaws(arg, dest, engine, just_check):
   if (just_check):
     return 1
 
-  if (engine == 'postgres' and (getPGVersionString(arg) > getPGVersionString(dest))):
-    dexit ('Cannot upgrade from newer to older version: ' + arg + ' -> ' + dest)
-
   k2 = []
   for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
+    if (engine == 'postgres'):
+      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(dest))):
+        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + dest)
+        continue
+
     k2.append(k['EngineVersion'])
     v = arg + '-' + k['EngineVersion']
     if (not v in lookup):
@@ -76,6 +78,15 @@ def callaws(arg, dest, engine, just_check):
   # Process the list in reversed order since ideally 
   # the target is expected to be a recent Minor Version
   for k in (k2):
+
+#    if (engine == 'postgres'):
+
+      # Assuming that the program wouldn't generate (or the CLI wouldn't return) an
+      # invalid PG Version number: XXX
+#      if (abs(getPGVersionString(arg) - getPGVersionString(dest)) < 100):
+#        dprint ('We''re unnecessarily doing a minor version jump. Skip it')
+#        continue
+
     if ((k == dest) or (callaws(k, dest, engine, 0) == 1)):
       if (k == dest):
         print ("")
@@ -99,9 +110,11 @@ if len(sys.argv) >= 4:
 if len(sys.argv) == 3:
   engine = 'postgres'
 
-if (int(getPGVersionString(sys.argv[1])) < 0 or int(getPGVersionString(sys.argv[2]) < 0)):
-  print('Source / Destination Version string seem invalid')
-  sys.exit()
+if (engine == 'postgres'):
+  if (int(getPGVersionString(sys.argv[1])) < 0 or int(getPGVersionString(sys.argv[2]) < 0)):
+    dexit('Source / Destination Version string seem invalid')
+  if ((getPGVersionString(sys.argv[1]) > getPGVersionString(sys.argv[2]))):
+    dexit ('Don''t need to check if we can upgrade from newer to older version: ' + sys.argv[1] + ' -> ' + sys.argv[2])
 
 if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
   print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
