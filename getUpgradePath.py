@@ -12,13 +12,21 @@
 # exhaustive search it is impossible to rule out whether a faster combination
 # is possible. This is a to-do item here, but hasn't been implemented yet.
 
+# 
+
 import sys
 import boto3
+from pgvernum import getPGVersionString
 
 lookup = {}
 enable_caching = 1
+allpaths = 0
 debug = 0
 
+def dexit(s):
+  print (s)
+  sys.exit(1)
+    
 def dprint(s):
   if (debug):
     print (s)
@@ -51,6 +59,9 @@ def callaws(arg, dest, engine, just_check):
 
   if (just_check):
     return 1
+
+  if (engine == 'postgres' and (getPGVersionString(arg) > getPGVersionString(dest))):
+    dexit ('Cannot upgrade from newer to older version: ' + arg + ' -> ' + dest)
 
   k2 = []
   for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
@@ -88,9 +99,13 @@ if len(sys.argv) >= 4:
 if len(sys.argv) == 3:
   engine = 'postgres'
 
+if (int(getPGVersionString(sys.argv[1])) < 0 or int(getPGVersionString(sys.argv[2]) < 0)):
+  print('Source / Destination Version string seem invalid')
+  sys.exit()
+
 if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
-  print('Syntax: python getUpgradePath.py v1 v2 [engine] [1]')
-  print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Debug (1 or 0)')
+  print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
+  print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Mode (1 for Debug, 2 for All Upgrade Options, 3 for both Debug & All Upgrade Options)')
   sys.exit()
 
 if (callaws(sys.argv[1], 'x', engine, 1) == 0):
@@ -101,9 +116,12 @@ if (callaws(sys.argv[2], 'y', engine, 1) == 0):
   print("Unable to find Upgrade path. Is the Target version supported in RDS?")
   sys.exit()
 
-# The last argument is for debug, if user wants to see a detailed output
-if ((len(sys.argv) == 5) and (sys.argv[4] == '1')):
-  debug = 1
+# The last argument is for mode of operation
+if (len(sys.argv) == 5):
+  if (sys.argv[4] == '1' or sys.argv[4] == '3'):
+    debug = 1
+  elif (sys.argv[4] == '2'):
+    allpaths = 1
 
 if (callaws(sys.argv[1], sys.argv[2], engine, 0) == 0):
   print ('')
