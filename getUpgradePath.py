@@ -22,6 +22,11 @@ lookup = {}
 enable_caching = 1
 allpaths = 0
 debug = 0
+soln = [[]]
+src = sys.argv[1]
+tgt = sys.argv[2]
+cntargs = len(sys.argv)
+engine='postgres'
 
 def dexit(s):
   print (s)
@@ -31,11 +36,42 @@ def dprint(s):
   if (debug):
     print (s)
 
-def callaws(arg, dest, engine, just_check):
+# Basic argument checks
+def ensureArgumentChecks():
+  if (cntargs < 3) or (cntargs > 5):
+    print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
+    print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Mode (1 for Debug, 2 for All Upgrade Options, 3 for both Debug & All Upgrade Options)')
+    sys.exit()
+  elif cntargs == 3:
+    # Unless provided, the default engine is postgres
+    engine = 'postgres'
+  elif cntargs >= 4:
+    engine = sys.argv[3]
 
+  # The last argument is for mode of operation
+  if (cntargs == 5):
+    if (sys.argv[4] == '1' or sys.argv[4] == '3'):
+      debug = 1
+    elif (sys.argv[4] >= '2'):
+      allpaths = 1
+
+
+def ensureVersionChecks():
+  if (engine == 'postgres'):
+    # Ensure the version strings are syntactically valid
+    if (int(getPGVersionString(src)) < 0 or int(getPGVersionString(tgt) < 0)):
+      dexit('Source / Destination Version string seem invalid')
+    if ((getPGVersionString(src) > getPGVersionString(tgt))):
+      dexit ('Skip upgrade check from newer to older version: ' + src + ' -> ' + tgt)
+  if (callaws(src, 'x', engine, 1) == 0):
+    dexit("Unable to find Upgrade path. Is the Source version supported in RDS?")
+  if (callaws(tgt, 'y', engine, 1) == 0):
+    dexit("Unable to find Upgrade path. Is the Target version supported in RDS?")
+
+
+def callaws(arg, dest, engine, just_check):
   dprint ('')
   dprint ('Checking combination ' + arg + '-' + dest)
-
   v = arg + '-' + dest
   if ((enable_caching) and (v in lookup)):
     if (lookup[v] == 1):
@@ -92,43 +128,15 @@ def callaws(arg, dest, engine, just_check):
   lookup[v] = -1
   return 0
 
-# Currently the default engine is postgres, unless explicitly provided (as 4th Option)
-if len(sys.argv) >= 4:
-  engine = sys.argv[3]
-elif len(sys.argv) == 3:
-  engine = 'postgres'
 
-# Ensure the version strings are syntactically valid and we aren't upgrading from newer to older version
-if (engine == 'postgres'):
-  if (int(getPGVersionString(sys.argv[1])) < 0 or int(getPGVersionString(sys.argv[2]) < 0)):
-    dexit('Source / Destination Version string seem invalid')
-  if ((getPGVersionString(sys.argv[1]) > getPGVersionString(sys.argv[2]))):
-    dexit ('Don''t need to check if we can upgrade from newer to older version: ' + sys.argv[1] + ' -> ' + sys.argv[2])
+# === Start ===
 
-# Basic bash argument count check
-if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
-  print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
-  print('Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Mode (1 for Debug, 2 for All Upgrade Options, 3 for both Debug & All Upgrade Options)')
-  sys.exit()
+ensureArgumentChecks()
+ensureVersionChecks()
 
-if (callaws(sys.argv[1], 'x', engine, 1) == 0):
-  print("Unable to find Upgrade path. Is the Source version supported in RDS?")
-  sys.exit() 
-
-if (callaws(sys.argv[2], 'y', engine, 1) == 0):
-  print("Unable to find Upgrade path. Is the Target version supported in RDS?")
-  sys.exit()
-
-# The last argument is for mode of operation
-if (len(sys.argv) == 5):
-  if (sys.argv[4] == '1' or sys.argv[4] == '3'):
-    debug = 1
-  elif (sys.argv[4] >= '2'):
-    allpaths = 1
-
-if (callaws(sys.argv[1], sys.argv[2], engine, 0) == 0):
+if (callaws(src, tgt, engine, 0) == 0):
   print ('')
   print ("===============================")
-  print("Unable to find Upgrade path from " + sys.argv[1] + ' to ' + sys.argv[2])
+  print("Unable to find Upgrade path from " + src + ' to ' + tgt)
 
 print ("===============================")
