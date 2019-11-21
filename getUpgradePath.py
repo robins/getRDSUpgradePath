@@ -12,8 +12,6 @@
 # exhaustive search it is impossible to rule out whether a faster combination
 # is possible. This is a to-do item here, but hasn't been implemented yet.
 
-# 
-
 import sys
 import boto3
 from pgvernum import getPGVersionString
@@ -63,41 +61,35 @@ def ensureVersionChecks():
       dexit('Source / Destination Version string seem invalid')
     if ((getPGVersionString(src) > getPGVersionString(tgt))):
       dexit ('Skip upgrade check from newer to older version: ' + src + ' -> ' + tgt)
-  if (callaws(src, 'x', engine, 1) == 0):
+  if (not isVersionUpgradable(src, engine)):
     dexit("Unable to find Upgrade path. Is the Source version supported in RDS?")
-  if (callaws(tgt, 'y', engine, 1) == 0):
+  if (not isVersionUpgradable(tgt, engine)):
     dexit("Unable to find Upgrade path. Is the Target version supported in RDS?")
 
 
-def callaws(arg, dest, engine, just_check):
-  dprint ('')
-  dprint ('Checking combination ' + arg + '-' + dest)
-  v = arg + '-' + dest
-  if ((enable_caching) and (v in lookup)):
-    if (lookup[v] == 1):
-      dprint ('Cache: Combination possible')
-      return 1
-    else:
-      dprint ('Cache: Combination not possible')
-      return 0
-
+def isVersionUpgradable(ver, engine):
+  dprint ('Checking Version: ' + ver)
   client = boto3.client('rds')
-
-  # Ideally this takes non-postgres engines as well, although not well tested (XXX)
   resp = client.describe_db_engine_versions(
     Engine=engine,
-    EngineVersion=arg,
+    EngineVersion=ver,
   )
-
-  # If there are no Upgrade paths, return right away
-  if (not resp['DBEngineVersions']):
+  upgrade_path=resp['DBEngineVersions']
+  # Fail if there are no Upgrade paths
+  if (not upgrade_path):
     return 0
+  else:
+    return upgrade_path
 
-  if (just_check):
-    return 1
 
+def findUpgradePaths(arg, dest, engine):
+  upgrade_path = isVersionUpgradable(arg, engine)
+  
+  if (not upgrade_path):
+    return 0
+  
   k2 = []
-  for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
+  for k in reversed(upgrade_path[0]['ValidUpgradeTarget']):
     if (engine == 'postgres'):
       if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(dest))):
         dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + dest)
@@ -129,14 +121,21 @@ def callaws(arg, dest, engine, just_check):
   return 0
 
 
+def printUpgradePaths(src, tgt, engine):
+  findUpgradePaths(src, tgt, engine)
+  
+  if (len(soln) == 0):
+    dexit("Unable to find Upgrade path from " + src + ' to ' + tgt)
+    
+  for i in range(soln):
+    print ()
+    for j in range(i):
+      print (j)
+      if j == len(i):
+        print ('->'),
+
 # === Start ===
 
 ensureArgumentChecks()
 ensureVersionChecks()
-
-if (callaws(src, tgt, engine, 0) == 0):
-  print ('')
-  print ("===============================")
-  print("Unable to find Upgrade path from " + src + ' to ' + tgt)
-
-print ("===============================")
+printUpgradePaths(src, tgt, engine)
