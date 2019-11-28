@@ -1,3 +1,5 @@
+py getUpgradePath.py 10.6 10.6 postgres
+py getUpgradePath.py 9.3.12 9.3.12 postgres
 py getUpgradePath.py 9.3.12 10.4 postgres
 py getUpgradePath.py 5.5.46 5.7.21 mysql
 py getUpgradePath.py 11.2.0.4.v1 12.1.0.2.v11 oracle-ee

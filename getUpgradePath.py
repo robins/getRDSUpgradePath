@@ -52,7 +52,7 @@ def callaws(arg, dest, engine, just_check):
   else:
     dprint('Caching disabled', 2)
 
-  dprint('CallAWS: Calling with ' + arg + ' ' + dest + ' ' + engine + str(debug_level), 3)
+  dprint('CallAWS: Calling with ' + arg + ' ' + dest + ' ' + engine + ' ' + str(debug_level), 3)
   client = boto3.client('rds')
 
   # Ideally this takes non-postgres engines as well, although not well tested (XXX)
@@ -128,8 +128,9 @@ def validateCLIArgsOrFail():
   dprint("Arg 0: " + str(sys.argv[0]), 5)
   dprint("Arg 1: " + str(sys.argv[1]), 5)
   dprint("Arg 2: " + str(sys.argv[2]), 5)
-  dprint("Arg 3: " + str(sys.argv[3]), 5)
-  dprint("Arg 4: " + str(sys.argv[4]), 5)
+  if (len(sys.argv) >=4): dprint("Arg 3: " + str(sys.argv[3]), 5)
+  if (len(sys.argv) >=5): dprint("Arg 4: " + str(sys.argv[4]), 5)
+
   dprint("Debug Level: " + str(debug_level), 4)
 
   # Validate the engine provided (If not provided the default is postgres)
@@ -145,6 +146,9 @@ def validateCLIArgsOrFail():
   d['src'] = sys.argv[1]
   d['tgt'] = sys.argv[2]
 
+  if (d['src'] == d['tgt']):
+    dexit("Cannot upgrade Source to the same Target Version")
+
   # Try to validate syntactic validity without calling AWS CLI, if possible
   if (d['engine'] == 'postgres'):
     if (int(getPGVersionString(d['src']))<0):
@@ -159,7 +163,7 @@ def validateCLIArgsOrFail():
   if (callaws(d['src'], 'x', d['engine'], 1) == 0):
     dexit("Source Engine Version is not yet supported in RDS: " + d['src'])
   if (callaws(d['tgt'], 'y', d['engine'], 1) == 0):
-    dexit("Target Engine Version is not yet supported in RDS: " | d['tgt'])
+    dexit("Target Engine Version is not yet supported in RDS: " + d['tgt'])
 
   dprint("Source Version: " + d['src'], 4)
   dprint("Target Version: " + d['tgt'], 4)
