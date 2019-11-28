@@ -42,13 +42,14 @@ def cachelookup(src, tgt):
       return 0
   else:
     dprint ('Cache: Combination not found: ' + src + '-' + tgt, 3)
-    return 0
+    return -1
 
 def callaws(arg, tgt, engine, just_check):
 
   if (enable_caching):
-    if (cachelookup(arg, tgt)):
-      return 1
+    t = cachelookup(arg, tgt)
+    if (t >= 0):
+      return t
   else:
     dprint('Caching disabled', 2)
 
@@ -160,9 +161,9 @@ def validateCLIArgsOrFail():
   # We've already done basic check on version numbers, so an error here may not
   # necessarily mean an invalid version. It's possible it isn't supported in RDS (yet)
   if (callaws(d['src'], 'x', d['engine'], 1) == 0):
-    dexit("Source Engine Version is not yet supported in RDS: " + d['src'])
+    dexit("Source Engine Version is not supported in RDS: " + d['src'])
   if (callaws(d['tgt'], 'y', d['engine'], 1) == 0):
-    dexit("Target Engine Version is not yet supported in RDS: " + d['tgt'])
+    dexit("Target Engine Version is not supported in RDS: " + d['tgt'])
 
   dprint("Source Version: " + d['src'], 4)
   dprint("Target Version: " + d['tgt'], 4)
