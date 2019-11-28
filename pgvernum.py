@@ -21,7 +21,7 @@
 import sys
 import re
 
-debug_level = 2
+debug_level = 0
 default_debug_level = 1
 
 def dprint(s, debug = default_debug_level):
@@ -31,7 +31,11 @@ def dprint(s, debug = default_debug_level):
 def getPGVersionString(s):
     dots = s.count('.')
 
-    if ( dots> 2):
+    # Basic syntax checking
+    if not (re.match('^[0-9\.]*$', s)):
+        dprint('Invalid Postgres version String provided - ' + s, 1)
+        return -1
+    if (dots> 2):
         dprint('Invalid Postgres version String provided - ' + s, 1)
         return -1
 
