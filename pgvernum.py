@@ -4,16 +4,16 @@ def dexit(s, shouldexit = 0):
    print (s)
    if (shouldexit):
         exit(1)
-    
+
 def getPGVersionString(s):
     dots = s.count('.')
-    
+
     if ( dots> 2):
         dexit('Invalid PG Version String provided - ' + s)
         return -1
-    
+
     x = list(map(int, s.split('.', dots)))
-    
+
     if (x[0]>=10):
         if (dots>=2):
             dexit('Invalid PG Version string provided - ' + s)
