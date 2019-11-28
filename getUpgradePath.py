@@ -35,24 +35,24 @@ def cachelookup(src, tgt):
   v = src + '-' + tgt
   if (v in lookup):
     if (lookup[v] == 1):
-      dprint ('Cache: Combination possible: ' + src + '-' + tgt, 2)
+      dprint ('Cache: Combination possible: ' + src + '-' + tgt, 3)
       return 1
     else:
-      dprint ('Cache: Combination not possible: '  + src + '-' + tgt, 2)
+      dprint ('Cache: Combination not possible: '  + src + '-' + tgt, 3)
       return 0
   else:
     dprint ('Cache: Combination not found: ' + src + '-' + tgt, 3)
     return 0
 
-def callaws(arg, dest, engine, just_check):
+def callaws(arg, tgt, engine, just_check):
 
   if (enable_caching):
-    if (cachelookup(arg, dest)):
+    if (cachelookup(arg, tgt)):
       return 1
   else:
     dprint('Caching disabled', 2)
 
-  dprint('CallAWS: Calling with ' + arg + ' ' + dest + ' ' + engine + ' ' + str(debug_level), 3)
+  dprint('Calling AWS CLI with ' + arg + ' ' + tgt + ' ' + engine, 2)
   client = boto3.client('rds')
 
   # Ideally this takes non-postgres engines as well, although not well tested (XXX)
@@ -71,8 +71,8 @@ def callaws(arg, dest, engine, just_check):
   k2 = []
   for k in reversed(resp['DBEngineVersions'][0]['ValidUpgradeTarget']):
     if (engine == 'postgres'):
-      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(dest))):
-        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + dest, 2)
+      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(tgt))):
+        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
         continue
 
     k2.append(k['EngineVersion'])
@@ -80,15 +80,15 @@ def callaws(arg, dest, engine, just_check):
     if (not v in lookup):
       lookup[v] = 1
 
-  dprint ('Valid targets: ' + '  '.join(k2), 3)
-  dprint ('Cache: ' + '  '.join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 3)
+  dprint ('Valid targets: ' + '  '.join(k2), 4)
+  dprint ('Cache: ' + '  '.join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
 
   # Process the list in reversed order since ideally
   # the target is expected to be a recent Minor Version
   for k in (k2):
 
-    if ((k == dest) or (callaws(k, dest, engine, 0) == 1)):
-      if (k == dest):
+    if ((k == tgt) or (callaws(k, tgt, engine, 0) == 1)):
+      if (k == tgt):
         print ("")
         print ("===============================")
       print ('Upgrade From: ' + arg + ' To: ' + k)
@@ -96,7 +96,7 @@ def callaws(arg, dest, engine, just_check):
 
   # If we reached here, it means this upgrade path isn't possible
   # We mark that and proceed with next possible combination
-  v = arg + '-' + dest
+  v = arg + '-' + tgt
   lookup[v] = -1
   return 0
 
@@ -107,11 +107,10 @@ def validateCLIArgsOrFail():
 
   # Basic bash argument count check
   if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
-    print('Syntax: python getUpgradePath.py v1 v2 [engine] [mode]')
-    print("""Source / Destination Versions are Mandatory.
-     Optionally, you may also provide:
-       Engine: (default Postgres)
-       DebugLevel: (default 1)""")
+    print('Syntax: python getUpgradePath.py v1 v2 [engine] [DebugLevel]')
+    print("""Source / Target Versions are Mandatory. Optionally, you may also provide:
+  Engine: (default 'postgres')
+  DebugLevel: (default '1')""")
     sys.exit()
 
   # The last argument is for mode of operation
@@ -147,14 +146,14 @@ def validateCLIArgsOrFail():
   d['tgt'] = sys.argv[2]
 
   if (d['src'] == d['tgt']):
-    dexit("Cannot upgrade Source to the same Target Version")
+    dexit("No upgrade required when Source and Target versions are the same")
 
   # Try to validate syntactic validity without calling AWS CLI, if possible
   if (d['engine'] == 'postgres'):
     if (int(getPGVersionString(d['src']))<0):
       dexit('Source Engine Version is invalid: ' + d['src'])
     if (int(getPGVersionString(d['tgt']) < 0)):
-      dexit('Destination Engine Version is invalid: ' + d['tgt'])
+      dexit('Target Engine Version is invalid: ' + d['tgt'])
     if ((getPGVersionString(d['src']) > getPGVersionString(d['tgt']))):
       dexit ('Cannot upgrade from newer to older version: ' + d['src'] + ' -> ' + d['tgt'])
 
