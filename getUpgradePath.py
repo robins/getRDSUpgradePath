@@ -19,7 +19,8 @@ from awsrdscli  import isValidRDSEngine
 
 lookup = {}
 enable_caching = 1
-debug_level = 1  # User provided verbosity level. 5 => extremely verbose. 0 => quiet
+debug_level = -1  # User provided verbosity level. 5 => extremely verbose. 0 => quiet
+debug_level_override = 0
 default_debug_level = 1
 
 def dexit(s, debug = default_debug_level):
@@ -27,7 +28,7 @@ def dexit(s, debug = default_debug_level):
   sys.exit(1)
 
 def dprint(s, debug = default_debug_level):
-  if (debug <= debug_level):
+  if ((debug <= debug_level_override) or (debug <= debug_level)):
     print (s)
 
 def cachelookup(src, tgt):
@@ -51,6 +52,7 @@ def callaws(arg, dest, engine, just_check):
   else:
     dprint('Caching disabled', 2)
 
+  dprint('CallAWS: Calling with ' + arg + ' ' + dest + ' ' + engine + str(debug_level), 3)
   client = boto3.client('rds')
 
   # Ideally this takes non-postgres engines as well, although not well tested (XXX)
@@ -100,6 +102,7 @@ def callaws(arg, dest, engine, just_check):
 
 
 def validateCLIArgsOrFail():
+  global debug_level
   d = dict()
 
   # Basic bash argument count check
@@ -111,6 +114,24 @@ def validateCLIArgsOrFail():
        DebugLevel: (default 1)""")
     sys.exit()
 
+  # The last argument is for mode of operation
+  if (len(sys.argv) == 5):
+    debug_level = int(sys.argv[4])
+    if (int(debug_level) < 0 & int(debug_level) > 5):
+      print("Invalid Debug Level: " + debug_level)
+      sys.exit()
+  else:
+    debug_level = default_debug_level
+
+  dprint("Arg array: " + ','.join(sys.argv[1:]), 5)
+  dprint("argv length: "+ str(len(sys.argv)), 5)
+  dprint("Arg 0: " + str(sys.argv[0]), 5)
+  dprint("Arg 1: " + str(sys.argv[1]), 5)
+  dprint("Arg 2: " + str(sys.argv[2]), 5)
+  dprint("Arg 3: " + str(sys.argv[3]), 5)
+  dprint("Arg 4: " + str(sys.argv[4]), 5)
+  dprint("Debug Level: " + str(debug_level), 4)
+
   # Validate the engine provided (If not provided the default is postgres)
   if len(sys.argv) >= 4:
     d['engine'] = sys.argv[3]
@@ -119,12 +140,15 @@ def validateCLIArgsOrFail():
   elif len(sys.argv) == 3:
     d['engine'] = 'postgres'
 
+  dprint("Engine: " + d['engine'], 4)
+
+  d['src'] = sys.argv[1]
+  d['tgt'] = sys.argv[2]
+
   # Try to validate syntactic validity without calling AWS CLI, if possible
   if (d['engine'] == 'postgres'):
-    d['src'] = sys.argv[1]
     if (int(getPGVersionString(d['src']))<0):
       dexit('Source Engine Version is invalid: ' + d['src'])
-    d['tgt'] = sys.argv[1]
     if (int(getPGVersionString(d['tgt']) < 0)):
       dexit('Destination Engine Version is invalid: ' + d['tgt'])
     if ((getPGVersionString(d['src']) > getPGVersionString(d['tgt']))):
@@ -137,10 +161,8 @@ def validateCLIArgsOrFail():
   if (callaws(d['tgt'], 'y', d['engine'], 1) == 0):
     dexit("Target Engine Version is not yet supported in RDS: " | d['tgt'])
 
-  # The last argument is for mode of operation
-  if (len(sys.argv) == 5):
-    if (sys.argv[4] >= '0' & sys.argv[4] <= '5'):
-      debug_level = sys.argv[4]
+  dprint("Source Version: " + d['src'], 4)
+  dprint("Target Version: " + d['tgt'], 4)
 
   return d
 
