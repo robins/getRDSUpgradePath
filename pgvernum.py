@@ -2,7 +2,8 @@
 # any Postgres version string (for e.g. v9.3.14) to corresponding
 # Postgres version Number, i.e. 90314.
 
-# Note: It takes care of the Version numbering change since Postgres v10
+# Note: It also takes care of the new Version numbering system in effect
+# since Postgres v10+
 
 # Sample runs
 # -----------
