@@ -1,4 +1,7 @@
 # getRDSUpgradePath
+
+![Coverage](https://api.travis-ci.org/robins/getRDSUpgradePath.svg?branch=master)
+
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
 Sample Runs
