@@ -3,4 +3,4 @@ python: "3.7"
 install:
   - pip install codecov
 script:
-  - coverage run tests_pgvernum.py
+  - coverage run test_pgvernum.py
