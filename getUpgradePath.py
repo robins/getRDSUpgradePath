@@ -44,20 +44,20 @@ def cachelookup(src, tgt):
     dprint ('Cache: Combination not found: ' + src + '-' + tgt, 3)
     return -1
 
-def callaws(arg, tgt, engine, just_check):
+def callaws(src, tgt, engine):
 
   if (enable_caching):
-    t = cachelookup(arg, tgt)
+    t = cachelookup(src, tgt)
     if (t >= 0):
       return t
   else:
-    dprint('Caching disabled', 2)
+    dprint('Caching disabled', 3)
 
-  dprint('Calling AWS CLI with ' + arg + ' ' + tgt + ' ' + engine, 2)
+  dprint('Calling AWS CLI with ' + src + ' ' + tgt + ' ' + engine, 2)
   client = boto3.client('rds')
   resp = client.describe_db_engine_versions(
     Engine=engine,
-    EngineVersion=ver,
+    EngineVersion=src
   )
   upgrade_path=resp['DBEngineVersions']
   # Fail if there are no Upgrade paths
@@ -67,8 +67,8 @@ def callaws(arg, tgt, engine, just_check):
     return upgrade_path
 
 
-def findUpgradePaths(arg, dest, engine):
-  upgrade_path = isVersionUpgradable(arg, engine)
+def findUpgradePaths(src, tgt, engine):
+  upgrade_path = callaws(src, tgt, engine)
 
   if (not upgrade_path):
     return 0
@@ -81,7 +81,7 @@ def findUpgradePaths(arg, dest, engine):
         continue
 
     k2.append(k['EngineVersion'])
-    v = arg + '-' + k['EngineVersion']
+    v = src + '-' + k['EngineVersion']
     if (not v in lookup):
       lookup[v] = 1
 
@@ -92,16 +92,16 @@ def findUpgradePaths(arg, dest, engine):
   # the target is expected to be a recent Minor Version
   for k in (k2):
 
-    if ((k == tgt) or (callaws(k, tgt, engine, 0) == 1)):
+    if ((k == tgt) or (callaws(k, tgt, engine) == 1)):
       if (k == tgt):
         print ("")
         print ("===============================")
-      print ('Upgrade From: ' + arg + ' To: ' + k)
+      print ('Upgrade From: ' + src + ' To: ' + k)
       return 1
 
   # If we reached here, it means this upgrade path isn't possible
   # We mark that and proceed with next possible combination
-  v = arg + '-' + tgt
+  v = src + '-' + tgt
   lookup[v] = -1
   return 0
 
@@ -164,9 +164,9 @@ def validateCLIArgsOrFail():
 
   # We've already done basic check on version numbers, so an error here may not
   # necessarily mean an invalid version. It's possible it isn't supported in RDS (yet)
-  if (callaws(d['src'], 'x', d['engine'], 1) == 0):
+  if (callaws(d['src'], 'x', d['engine']) == 0):
     dexit("Source Engine Version is not supported in RDS: " + d['src'])
-  if (callaws(d['tgt'], 'y', d['engine'], 1) == 0):
+  if (callaws(d['tgt'], 'y', d['engine']) == 0):
     dexit("Target Engine Version is not supported in RDS: " + d['tgt'])
 
   dprint("Source Version: " + d['src'], 4)
@@ -182,7 +182,19 @@ def getUpgradePathForCombination(src, tgt, engine):
 
   print ("===============================")
 
+def printUpgradePaths(src, tgt, engine):
+  findUpgradePaths(src, tgt, engine)
+
+  if (len(soln) == 0):
+    dexit("Unable to find Upgrade path from " + src + ' to ' + tgt)
+
+  for i in range(soln):
+    print ()
+    for j in range(i):
+      print (j)
+      if j == len(i):
+        print ('->'),
 
 d = dict()
 d = validateCLIArgsOrFail()
-getUpgradePathForCombination(d['src'], d['tgt'], d['engine'])
+printUpgradePaths(d['src'], d['tgt'], d['engine'])
