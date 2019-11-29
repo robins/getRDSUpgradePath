@@ -1,5 +1,15 @@
+import unittest
+import pgvernum
 
-python pgvernum.py 9.3.14
+class TestMethods(unittest.TestCase):
+    def test_add(self):
+        self.assertEqual(pgvernum.getPGVersionString('9.3.14'), "90314")
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+#python pgvernum.py 9.3.14
 # 90314
 #py pgvernum.py 9.6.1
 # 90601
