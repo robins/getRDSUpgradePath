@@ -170,9 +170,7 @@ def findAdjacentUpgrades(src, tgt, engine):
   # Process the list in reversed order since ideally
   # the target is expected to be a recent Minor Version
   for k in (k2):
-    if (k == tgt):
-      return
-    else:
+    if not (k == tgt):
       findAdjacentUpgrades(k, tgt, engine)
 
   # If we reached here, it means this upgrade path isn't possible
@@ -185,14 +183,34 @@ def findAdjacentUpgrades(src, tgt, engine):
 def createtraversalmatrix(src, tgt, path):
   global soln
 
-  path=[src]
+  dprint("Src: " + src)
+  dprint("Tgt: " + tgt)
+
   if (src == tgt):
-    soln.append(path)
+    path.append(tgt)
+    dprint ("Path1: " + str(path))
+    if not (path in soln):
+      soln.append(path)
+    dprint("Soln: " + str(soln))
   else:
     for e in lookup[src]:
-      createtraversalmatrix(e, tgt, path)
+      dprint ("Path2: " + str(path))
+      p = path[:]
+      p.append(src)
+      dprint ("P: " + str(p))
+      dprint ("src: " + str(src))
+      dprint ("P.append(src): " + str(p))
+      createtraversalmatrix(e, tgt, p)
+
+def printTraversalMatrix():
+  while soln:
+    p = min(soln, key=lambda x: len(x))
+    print (str(p))
+    soln.remove(p)
 
 d = dict()
 d = validateCLIArgsOrFail()
 findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
 createtraversalmatrix(d['src'], d['tgt'], [])
+
+printTraversalMatrix()
