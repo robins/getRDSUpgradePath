@@ -166,7 +166,7 @@ def findAdjacentUpgrades(src, tgt, engine):
 
   dprint ('Valid targets: ' + '  '.join(k2), 4)
   dprint ('Cache: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
-  print()
+
   # Process the list in reversed order since ideally
   # the target is expected to be a recent Minor Version
   for k in (k2):
@@ -177,36 +177,48 @@ def findAdjacentUpgrades(src, tgt, engine):
   # We mark that and proceed with next possible combination
   if not (src in lookup):
     lookup[src]={}
-  lookup[src][tgt] = 1000
+  if not (tgt in lookup[src]):
+    lookup[src][tgt] = 1002
   return
 
 def createtraversalmatrix(src, tgt, path):
   global soln
 
-  dprint("Src: " + src)
-  dprint("Tgt: " + tgt)
+  dprint("Src: " + src, 6)
+  dprint("Tgt: " + tgt, 6)
+  if ((len(soln) > 20) and (len(soln) % 20 == 0)):
+    dprint("Found Upgrade paths: " + str(len(soln)), 5)
 
   if (src == tgt):
     path.append(tgt)
-    dprint ("Path1: " + str(path))
+#    dprint ("Path1: " + str(path), 6)
     if not (path in soln):
       soln.append(path)
-    dprint("Soln: " + str(soln))
+    dprint("Soln: " + str(soln), 6)
   else:
     for e in lookup[src]:
-      dprint ("Path2: " + str(path))
       p = path[:]
       p.append(src)
-      dprint ("P: " + str(p))
-      dprint ("src: " + str(src))
-      dprint ("P.append(src): " + str(p))
+#      dprint ("Path: " + str(p), 6)
       createtraversalmatrix(e, tgt, p)
 
 def printTraversalMatrix():
+  l = 0
+  cnt=0
   while soln:
     p = min(soln, key=lambda x: len(x))
-    print (str(p))
+    if (l != (len(p)-1)):
+      if (cnt > 1):
+        print (" ^^ " + str(cnt) + " upgrade paths found")
+        cnt=0
+      print ()
+      print ("Upgrade Steps / Hops: " + str(len(p) - 1))
+      l = len(p) - 1
+    cnt+=1
+    print (" Path: " + str(p))
     soln.remove(p)
+  if (cnt > 1):
+    print (" ^^ " + str(cnt) + " upgrade paths found")
 
 d = dict()
 d = validateCLIArgsOrFail()
