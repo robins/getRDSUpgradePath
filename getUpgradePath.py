@@ -22,6 +22,7 @@ from awsrdscli  import isValidRDSEngine
 lookup = {} # 1-step upgrade paths + a flag for whether they are possible
 soln = [] # All steps of (only successful) upgrade paths (from src to tgt)
 enable_caching = 1
+hops_desired = 1
 debug_level = -1  # User provided verbosity level. 5 => extremely verbose. 0 => quiet
 debug_level_override = 0
 default_debug_level = 1
@@ -35,25 +36,37 @@ def dprint(s, debug = default_debug_level):
     print (s)
 
 def validateCLIArgsOrFail():
-  global debug_level
+  global debug_level, hops_desired
   d = dict()
 
   # Basic bash argument count check
-  if ((len(sys.argv) < 3) or (len(sys.argv) > 5)):
-    print('Syntax: python getUpgradePath.py v1 v2 [engine] [DebugLevel]')
-    print("""Source / Target Versions are Mandatory. Optionally, you may also provide:
-  Engine: (default 'postgres')
-  DebugLevel: (default '1')""")
+  if ((len(sys.argv) < 3) or (len(sys.argv) > 6)):
+    print("""
+Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
+
+Source / Target Versions are Mandatory. Optionally, you may also provide:
+  Engine: RDS Database Engine | Default:postgres
+  Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
+  Verbosity: Verbosity of the output | Default:1 | Range:1-5""")
     sys.exit()
 
-  # The last argument is for mode of operation
-  if (len(sys.argv) == 5):
-    debug_level = int(sys.argv[4])
-    if (int(debug_level) < 0 & int(debug_level) > 5):
-      print("Invalid Debug Level: " + debug_level)
+  # The last argument is for Debug Level
+  if (len(sys.argv) == 6):
+    debug_level = int(sys.argv[5])
+    if (int(debug_level) < 0 or int(debug_level) > 6):
+      print("Invalid Verbosity level: " + str(debug_level))
+      print("Hint: Verbosity level ranges from 1-5")
       sys.exit()
   else:
     debug_level = default_debug_level
+
+  # The last argument is for Debug Level
+  if (len(sys.argv) >= 5):
+    hops_desired = int(sys.argv[4])
+    if (int(hops_desired) < 1 or int(hops_desired) > 10):
+      print("Invalid Hop level: " + str(debug_level))
+      print("Hint: Hop level ranges from 1-10")
+      sys.exit()
 
   dprint("Arg array: " + ','.join(sys.argv[1:]), 5)
   dprint("argv length: "+ str(len(sys.argv)), 5)
@@ -150,7 +163,7 @@ def findAdjacentUpgrades(src, tgt, engine):
     return
 
   k2 = []
-#  print (str(upgrade_path))
+  # print (str(upgrade_path))
   for k in reversed(upgrade_path[0]['ValidUpgradeTarget']):
 
     # Avoid CLI calls if possible
@@ -186,12 +199,14 @@ def createtraversalmatrix(src, tgt, path):
 
   dprint("Src: " + src, 6)
   dprint("Tgt: " + tgt, 6)
-  if ((len(soln) > 20) and (len(soln) % 20 == 0)):
-    dprint("Found Upgrade paths: " + str(len(soln)), 5)
+  if (((len(soln) < 100) and (len(soln) % 10 == 0)) or
+     ((len(soln) < 1000) and (len(soln) % 100 == 0)) or
+     ((len(soln) < 10000) and (len(soln) % 1000 == 0))):
+      dprint("Found Upgrade paths: " + str(len(soln)))
 
   if (src == tgt):
     path.append(tgt)
-#    dprint ("Path1: " + str(path), 6)
+    # dprint ("Path1: " + str(path), 6)
     if not (path in soln):
       soln.append(path)
     dprint("Soln: " + str(soln), 6)
@@ -199,7 +214,7 @@ def createtraversalmatrix(src, tgt, path):
     for e in lookup[src]:
       p = path[:]
       p.append(src)
-#      dprint ("Path: " + str(p), 6)
+      # dprint ("Path: " + str(p), 6)
       createtraversalmatrix(e, tgt, p)
 
 def printTraversalMatrix():
@@ -211,6 +226,8 @@ def printTraversalMatrix():
       if (cnt > 1):
         print (" ^^ " + str(cnt) + " upgrade paths found")
         cnt=0
+      if (len(p) - 1 > hops_desired):
+        return
       print ()
       print ("Upgrade Steps / Hops: " + str(len(p) - 1))
       l = len(p) - 1
@@ -226,3 +243,4 @@ findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
 createtraversalmatrix(d['src'], d['tgt'], [])
 
 printTraversalMatrix()
+sys.exit()
