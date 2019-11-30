@@ -15,6 +15,7 @@
 import sys
 import boto3
 import re
+import time
 
 from pgvernum import getPGVersionString
 from awsrdscli  import isValidRDSEngine
@@ -199,10 +200,11 @@ def createtraversalmatrix(src, tgt, path):
 
   dprint("Src: " + src, 6)
   dprint("Tgt: " + tgt, 6)
-  if (((len(soln) < 100) and (len(soln) % 10 == 0)) or
-     ((len(soln) < 1000) and (len(soln) % 100 == 0)) or
-     ((len(soln) < 10000) and (len(soln) % 1000 == 0))):
-      dprint("Found Upgrade paths: " + str(len(soln)))
+  l = len(soln)
+  if ((l < 1000) and (l % 100 == 0)):
+    dprint("Found " + str(l) + " upgrade paths")
+  elif (((l < 10000) and (l % 1000 == 0))):
+    dprint("Found " + str(l) + " upgrade paths in %s seconds"  %int(time.time() - start_time))
 
   if (src == tgt):
     path.append(tgt)
@@ -238,6 +240,7 @@ def printTraversalMatrix():
     print (" ^^ " + str(cnt) + " upgrade paths found")
 
 d = dict()
+start_time = time.time()
 d = validateCLIArgsOrFail()
 findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
 createtraversalmatrix(d['src'], d['tgt'], [])
