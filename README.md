@@ -5,8 +5,8 @@
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
 ## Releases
-### Stable: ![Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
-### Dev: ![Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.1 )
+- Stable: [Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
+- Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.1 )
 
 ## Sample Runs
 ```
