@@ -29,6 +29,12 @@ def dprint(s, debug = default_debug_level):
    if (debug_level >= debug):
       print (s)
 
+def appendMinorVersionIfRequired(s):
+    if(s.count('.') == 0):
+        return s + ".0"
+    else:
+        return s
+
 def getPGVersionString(s):
     dots = s.count('.')
 

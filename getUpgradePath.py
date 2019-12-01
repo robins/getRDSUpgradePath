@@ -18,6 +18,7 @@ import re
 import time
 
 from pgvernum import getPGVersionString
+from pgvernum import appendMinorVersionIfRequired
 from awsrdscli import isValidRDSEngine
 from awsrdscli import getEngineTypoRecommendation
 
@@ -100,6 +101,15 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
 
   # Try to validate syntactic validity without calling AWS CLI, if possible
   if (d['engine'] == 'postgres'):
+
+    if (d['src'] != appendMinorVersionIfRequired(d['src'])):
+      d['src'] = appendMinorVersionIfRequired(d['src'])
+      dprint("Source Version corrected to - " + d['src'])
+
+    if (d['tgt'] != appendMinorVersionIfRequired(d['tgt'])):
+      d['tgt'] = appendMinorVersionIfRequired(d['tgt'])
+      dprint("Target Version corrected to - " + d['tgt'])
+
     if (int(getPGVersionString(d['src']))<0):
       dexit('Source Engine Version is invalid: ' + d['src'])
     if (int(getPGVersionString(d['tgt']) < 0)):
