@@ -5,13 +5,15 @@
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
 Some features:
-- Catch trivial errors - (Source version newer)
-- Catch trivial errors - (Source Target same)
 - Compute best (least hops) solution
 - Show *all* possible Upgrade paths (if required)
 - Show computation progress if taking time
 - Support all engines (For e.g. Oracle / SQL Server / MariaDB / Aurora Postgres / etc.)
 - Allow (really high) verbosity levels, if required
+- Catch trivial errors
+  - Source version newer
+  - Source Target same
+  - Engine name typos / hint correct spelling
 
 ## Releases
 - Stable: [Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
@@ -30,13 +32,18 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
   Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
   Verbosity: Verbosity of the output | Default:1 | Range:1-5
 
-=== Catch trivial errors - 1 ===
+=== Catch trivial errors - (Source Target same) ===
 >py getUpgradePath.py 10.6 10.6 postgres
 No upgrade required when Source and Target versions are the same
 
-=== Catch trivial errors - 2 ===
+=== Catch trivial errors - (Source version newer) ===
 >py getUpgradePath.py 9.3.12 9.3.11 postgres
 Cannot upgrade from newer to older version: 9.3.12 -> 9.3.11
+
+=== Catch trivial errors - (Engine name recommendations) ===
+>py getUpgradePath.py 9.3.12 9.3.11 auroapostgres
+Invalid Engine: auroapostgres
+Hint: May be you meant - aurora-postgresql
 
 === Show 1 Hop (direct upgrade) results by default ===
 >py getUpgradePath.py 9.6.15 10.10

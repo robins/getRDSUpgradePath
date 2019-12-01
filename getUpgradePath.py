@@ -18,7 +18,8 @@ import re
 import time
 
 from pgvernum import getPGVersionString
-from awsrdscli  import isValidRDSEngine
+from awsrdscli import isValidRDSEngine
+from awsrdscli import getEngineTypoRecommendation
 
 lookup = {} # 1-step upgrade paths + a flag for whether they are possible
 soln = [] # All steps of (only successful) upgrade paths (from src to tgt)
@@ -82,8 +83,10 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
   # Validate the engine provided (If not provided the default is postgres)
   if len(sys.argv) >= 4:
     d['engine'] = sys.argv[3]
-    if isValidRDSEngine(d['engine']):
-      dexit('Invalid Engine: ' + d['engine'])
+    if not isValidRDSEngine(d['engine']):
+      dprint('Invalid Engine: ' + d['engine'])
+      dprint("Hint: May be you meant - " + getEngineTypoRecommendation(d['engine']))
+      sys.exit()
   elif len(sys.argv) == 3:
     d['engine'] = 'postgres'
 
