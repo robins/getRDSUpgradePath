@@ -202,9 +202,7 @@ def createtraversalmatrix(src, tgt, path):
   dprint("Tgt: " + tgt, 6)
   l = len(soln)
   if (l>0):
-    if ((l < 1000) and (l % 100 == 0)):
-      dprint("Found " + str(l) + " upgrade paths")
-    elif (((l < 10000) and (l % 1000 == 0))):
+    if (((l < 100000) and (l % 1000 == 0))):
       dprint("Found " + str(l) + " upgrade paths in %s seconds"  %int(time.time() - start_time))
 
   if (src == tgt):

@@ -4,111 +4,210 @@
 
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
+Some features:
+- Catch trivial errors - (Source version newer)
+- Catch trivial errors - (Source Target same)
+- Compute best (least hops) solution
+- Show *all* possible Upgrade paths (if required)
+- Show computation progress if taking time
+- Support all engines (For e.g. Oracle / SQL Server / MariaDB / Aurora Postgres / etc.)
+- Allow (really high) verbosity levels, if required
+
 ## Releases
 - Stable: [Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
 - Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.1 )
 
 ## Sample Runs
 ```
->py getUpgradePath.py 9.3.12 10.4 postgres
 
-===============================
-Upgrade From: 9.6.9 To: 10.4
-Upgrade From: 9.5.13 To: 9.6.9
-Upgrade From: 9.4.18 To: 9.5.13
-Upgrade From: 9.3.12 To: 9.4.18
-===============================
+=== Usage / syntax ===
+>py getUpgradepath.py
 
->py getUpgradePath.py 5.5.46 5.7.21 mysql
+Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
 
-===============================
-Upgrade From: 5.6.39 To: 5.7.21
-Upgrade From: 5.5.46 To: 5.6.39
-===============================
+Source / Target Versions are Mandatory. Optionally, you may also provide:
+  Engine: RDS Database Engine | Default:postgres
+  Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
+  Verbosity: Verbosity of the output | Default:1 | Range:1-5
 
->py getUpgradePath.py 11.2.0.4.v1 12.1.0.2.v11 oracle-ee
+=== Catch trivial errors - 1 ===
+>py getUpgradePath.py 10.6 10.6 postgres
+No upgrade required when Source and Target versions are the same
 
-===============================
-Upgrade From: 11.2.0.4.v1 To: 12.1.0.2.v11
-===============================
+=== Catch trivial errors - 2 ===
+>py getUpgradePath.py 9.3.12 9.3.11 postgres
+Cannot upgrade from newer to older version: 9.3.12 -> 9.3.11
 
->py getUpgradePath.py 10.50.6000.34.v1 14.00.3015.40.v1 sqlserver-ee
-Unable to find Upgrade path. Is the Source version supported in RDS?
+=== Show 1 Hop (direct upgrade) results by default ===
+>py getUpgradePath.py 9.6.15 10.10
 
->py getUpgradePath.py 10.0.17 10.2.12 mariadb
+Upgrade Steps / Hops: 1
+ Path: ['9.6.15', '10.10']
 
-===============================
-Upgrade From: 10.1.31 To: 10.2.12
-Upgrade From: 10.0.17 To: 10.1.31
-===============================
+=== Show progress if computation takes longer ===
+>py getUpgradePath.py 5.7.16 8.0.16 mysql
+Found 1000 upgrade paths in 3 seconds
 
->py getUpgradePath.py 9.6.3 9.6.6 aurora-postgresql
+Upgrade Steps / Hops: 1
+ Path: ['5.7.16', '8.0.16']
 
-===============================
-Upgrade From: 9.6.3 To: 9.6.6
-===============================
+=== Support all engines - RDS Oracle ===
+>py getUpgradePath.py 12.1.0.2.v13 12.1.0.2.v18 oracle-ee
 
->py getUpgradePath.py 9.3.12 10.3 postgres
+Upgrade Steps / Hops: 1
+ Path: ['12.1.0.2.v13', '12.1.0.2.v18']
 
-===============================
-Unable to find Upgrade path from 9.3.12 to 10.3
-===============================
+=== Support all engines - RDS SQL Server ===
+>py getUpgradePath.py 12.00.5000.0.v1 14.00.3192.2.v1 sqlserver-ee
 
->py getUpgradePath.py 9.3.12
-Syntax: python getUpgradePath.py v1 v2 [engine] [1]
-Source / Destination Versions are Mandatory. You may also optionally mention Engine (default Postgres) and Debug (1 or 0)
+Upgrade Steps / Hops: 1
+ Path: ['12.00.5000.0.v1', '14.00.3192.2.v1']
 
->py getUpgradePath.py 9.3.12 9.4.14 postgres 3
-Cache: Combination not found: 9.3.12-x
+=== Support all engines - RDS MariaDB ===
+>py getUpgradePath.py 10.0.32 10.3.13 mariadb
+Found 1000 upgrade paths in 4 seconds
+Found 2000 upgrade paths in 6 seconds
+Found 3000 upgrade paths in 9 seconds
+Found 4000 upgrade paths in 14 seconds
+Found 5000 upgrade paths in 20 seconds
+
+Upgrade Steps / Hops: 1
+ Path: ['10.0.32', '10.3.13']
+
+=== Support all engines - Aurora Postgres ===
+>py getUpgradePath.py 9.6.3 9.6.12 aurora-postgresql
+
+Upgrade Steps / Hops: 1
+ Path: ['9.6.3', '9.6.12']
+
+=== Show *all* possible Upgrade paths ===
+>py getUpgradePath.py 9.6.10 10.10 postgres 10
+
+Upgrade Steps / Hops: 1
+ Path: ['9.6.10', '10.10']
+
+Upgrade Steps / Hops: 2
+ Path: ['9.6.10', '10.9', '10.10']
+ Path: ['9.6.10', '10.7', '10.10']
+ Path: ['9.6.10', '10.6', '10.10']
+ Path: ['9.6.10', '10.5', '10.10']
+ Path: ['9.6.10', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.14', '10.10']
+ Path: ['9.6.10', '9.6.12', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.10']
+ ^^ 9 upgrade paths found
+
+Upgrade Steps / Hops: 3
+ Path: ['9.6.10', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '10.6', '10.9', '10.10']
+ Path: ['9.6.10', '10.6', '10.7', '10.10']
+ Path: ['9.6.10', '10.5', '10.9', '10.10']
+ Path: ['9.6.10', '10.5', '10.7', '10.10']
+ Path: ['9.6.10', '10.5', '10.6', '10.10']
+ Path: ['9.6.10', '9.6.14', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.14', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.12', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.12', '10.7', '10.10']
+ Path: ['9.6.10', '9.6.12', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.12', '9.6.14', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.7', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.6', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.14', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '10.10']
+ ^^ 18 upgrade paths found
+
+Upgrade Steps / Hops: 4
+ Path: ['9.6.10', '10.6', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '10.5', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '10.5', '10.6', '10.9', '10.10']
+ Path: ['9.6.10', '10.5', '10.6', '10.7', '10.10']
+ Path: ['9.6.10', '9.6.12', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.12', '9.6.14', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.12', '9.6.14', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.6', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.6', '10.7', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.14', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.14', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '10.7', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '9.6.15', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '9.6.14', '10.10']
+ ^^ 16 upgrade paths found
+
+Upgrade Steps / Hops: 5
+ Path: ['9.6.10', '10.5', '10.6', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '10.6', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '10.7', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '9.6.14', '10.9', '10.10']
+ Path: ['9.6.10', '9.6.11', '9.6.12', '9.6.14', '9.6.15', '10.10']
+ ^^ 5 upgrade paths found
+
+=== Show some level of verbosity ===
+>py getUpgradePath.py 9.3.12 9.4.14 postgres 1 2
 Calling AWS CLI with 9.3.12 x postgres
-Cache: Combination not found: 9.4.14-y
 Calling AWS CLI with 9.4.14 y postgres
-Cache: Combination not found: 9.3.12-9.4.14
 Calling AWS CLI with 9.3.12 9.4.14 postgres
-Skip upgrade check from newer to older version: 9.4.24 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.23 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.21 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.20 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.19 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.18 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.17 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.15 -> 9.4.14
+Calling AWS CLI with 9.4.12 9.4.14 postgres
+Calling AWS CLI with 9.4.11 9.4.14 postgres
+Calling AWS CLI with 9.4.9 9.4.14 postgres
+Calling AWS CLI with 9.4.7 9.4.14 postgres
+Calling AWS CLI with 9.3.25 9.4.14 postgres
+Calling AWS CLI with 9.3.24 9.4.14 postgres
+Calling AWS CLI with 9.3.23 9.4.14 postgres
+Calling AWS CLI with 9.3.22 9.4.14 postgres
+Calling AWS CLI with 9.3.20 9.4.14 postgres
+Calling AWS CLI with 9.3.19 9.4.14 postgres
+Calling AWS CLI with 9.3.17 9.4.14 postgres
+Calling AWS CLI with 9.3.16 9.4.14 postgres
+Calling AWS CLI with 9.3.14 9.4.14 postgres
 
-===============================
-Upgrade From: 9.3.12 To: 9.4.14
-===============================
+Upgrade Steps / Hops: 1
+ Path: ['9.3.12', '9.4.14']
 
-
->py getUpgradePath.py 9.3.12 9.4.14 postgres 5
-Arg array: 9.3.12,9.4.14,postgres,5
-argv length: 5
+=== High level of verbosity ===
+>py getUpgradePath.py 9.4.11 9.4.12 postgres 1 5
+Arg array: 9.4.11,9.4.12,postgres,1,5
+argv length: 6
 Arg 0: getUpgradePath.py
-Arg 1: 9.3.12
-Arg 2: 9.4.14
+Arg 1: 9.4.11
+Arg 2: 9.4.12
 Arg 3: postgres
-Arg 4: 5
+Arg 4: 1
 Debug Level: 5
 Engine: postgres
-Cache: Combination not found: 9.3.12-x
-Calling AWS CLI with 9.3.12 x postgres
-Cache: Combination not found: 9.4.14-y
-Calling AWS CLI with 9.4.14 y postgres
-Source Version: 9.3.12
-Target Version: 9.4.14
-Cache: Combination not found: 9.3.12-9.4.14
-Calling AWS CLI with 9.3.12 9.4.14 postgres
-Skip upgrade check from newer to older version: 9.4.24 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.23 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.21 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.20 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.19 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.18 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.17 -> 9.4.14
-Skip upgrade check from newer to older version: 9.4.15 -> 9.4.14
-Valid targets: 9.4.14  9.4.12  9.4.11  9.4.9  9.4.7  9.3.25  9.3.24  9.3.23  9.3.22  9.3.20  9.3.19  9.3.17  9.3.16  9.3.14
-Cache: (9.3.12-9.4.14->1)  (9.3.12-9.4.12->1)  (9.3.12-9.4.11->1)  (9.3.12-9.4.9->1)  (9.3.12-9.4.7->1)  (9.3.12-9.3.25->1)  (9.3.12-9.3.24->1)  (9.3.12-9.3.23->1)  (9.3.12-9.3.22->1)  (9.3.12-9.3.20->1)  (9.3.12-9.3.19->1)  (9.3.12-9.3.17->1)  (9.3.12-9.3.16->1)  (9.3.12-9.3.14->1)
+Calling AWS CLI with 9.4.11 x postgres
+Calling AWS CLI with 9.4.12 y postgres
+Source Version: 9.4.11
+Target Version: 9.4.12
+Cache: Combination not found: 9.4.11->9.4.12
+Calling AWS CLI with 9.4.11 9.4.12 postgres
+Skip upgrade check from newer to older version: 9.5.19 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.18 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.16 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.15 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.14 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.13 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.12 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.10 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.9 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.7 -> 9.4.12
+Skip upgrade check from newer to older version: 9.5.6 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.24 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.23 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.21 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.20 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.19 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.18 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.17 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.15 -> 9.4.12
+Skip upgrade check from newer to older version: 9.4.14 -> 9.4.12
+Valid targets: 9.4.12
+Cache: (9.4.11->{'9.4.12': 1})
 
-===============================
-Upgrade From: 9.3.12 To: 9.4.14
-===============================
+Upgrade Steps / Hops: 1
+ Path: ['9.4.11', '9.4.12']
+
 ```
