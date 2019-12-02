@@ -1,0 +1,32 @@
+PROPOSED release names
+
+This is a proposed set of names for upcoming releases of the project.
+The names chosen are among some of the commonly used surnames in Kerala,
+a southern-state of India.
+
+a	Avaran - v1.0
+b	Bhaskaran - v1.1
+c	Chacko - v1.2
+d Dharmakumar
+e	Eliamma
+f
+g
+h	Hariz
+i	Iyer
+j	Jacob
+k	Kurian
+l
+m	Menon
+n	Nair
+o	Ouseph
+p	Pillai
+q
+r	Radhakrishnan
+s	Saramma
+t	Tharakan
+u	Ummer
+v	Varghese
+w
+x
+y
+z
