@@ -38,12 +38,12 @@ def dprint(s, debug = default_debug_level):
   if ((debug <= debug_level_override) or (debug <= debug_level)):
     print (s)
 
-def validateCLIArgsOrFail():
+def validateCLIArgsOrFail(argv):
   global debug_level, hops_desired
   d = dict()
 
   # Basic bash argument count check
-  if ((len(sys.argv) < 3) or (len(sys.argv) > 6)):
+  if ((len(argv) < 3) or (len(argv) > 6)):
     print("""
 Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
 
@@ -54,8 +54,8 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
     sys.exit()
 
   # The last argument is for Debug Level
-  if (len(sys.argv) == 6):
-    debug_level = int(sys.argv[5])
+  if (len(argv) == 6):
+    debug_level = int(argv[5])
     if (int(debug_level) < 0 or int(debug_level) > 6):
       print("Invalid Verbosity level: " + str(debug_level))
       print("Hint: Verbosity level ranges from 1-5")
@@ -64,37 +64,37 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
     debug_level = default_debug_level
 
   # The last argument is for Debug Level
-  if (len(sys.argv) >= 5):
-    hops_desired = int(sys.argv[4])
+  if (len(argv) >= 5):
+    hops_desired = int(argv[4])
     if (int(hops_desired) < 1 or int(hops_desired) > 10):
       print("Invalid Hop level: " + str(debug_level))
       print("Hint: Hop level ranges from 1-10")
       sys.exit()
 
-  dprint("Arg array: " + ','.join(sys.argv[1:]), 5)
-  dprint("argv length: "+ str(len(sys.argv)), 5)
-  dprint("Arg 0: " + str(sys.argv[0]), 5)
-  dprint("Arg 1: " + str(sys.argv[1]), 5)
-  dprint("Arg 2: " + str(sys.argv[2]), 5)
-  if (len(sys.argv) >=4): dprint("Arg 3: " + str(sys.argv[3]), 5)
-  if (len(sys.argv) >=5): dprint("Arg 4: " + str(sys.argv[4]), 5)
+  dprint("Arg array: " + ','.join(argv[1:]), 5)
+  dprint("argv length: "+ str(len(argv)), 5)
+  dprint("Arg 0: " + str(argv[0]), 5)
+  dprint("Arg 1: " + str(argv[1]), 5)
+  dprint("Arg 2: " + str(argv[2]), 5)
+  if (len(argv) >=4): dprint("Arg 3: " + str(argv[3]), 5)
+  if (len(argv) >=5): dprint("Arg 4: " + str(argv[4]), 5)
 
   dprint("Debug Level: " + str(debug_level), 4)
 
   # Validate the engine provided (If not provided the default is postgres)
-  if len(sys.argv) >= 4:
-    d['engine'] = sys.argv[3]
+  if len(argv) >= 4:
+    d['engine'] = argv[3]
     if not isValidRDSEngine(d['engine']):
       dprint('Invalid Engine: ' + d['engine'])
       dprint("Hint: May be you meant - " + getEngineTypoRecommendation(d['engine']))
       sys.exit()
-  elif len(sys.argv) == 3:
+  elif len(argv) == 3:
     d['engine'] = 'postgres'
 
   dprint("Engine: " + d['engine'], 4)
 
-  d['src'] = sys.argv[1]
-  d['tgt'] = sys.argv[2]
+  d['src'] = argv[1]
+  d['tgt'] = argv[2]
 
   if (d['src'] == d['tgt']):
     dexit("No upgrade required when Source and Target versions are the same")
@@ -246,16 +246,24 @@ def printTraversalMatrix():
       dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
       l = len(p) - 1
     cnt+=1
-    dprint (" Path: " + str(p), 0)
+    r = " Path: " + str(p)
+    dprint (r, 0)
     soln.remove(p)
   if (cnt > 1):
     dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
+  if (__name__ != '__main__'):
+    return r
 
-d = dict()
-start_time = time.time()
-d = validateCLIArgsOrFail()
-findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
-createtraversalmatrix(d['src'], d['tgt'], [])
+def main(argv):
+  global start_time
+  d = dict()
+  start_time = time.time()
+  d = validateCLIArgsOrFail(argv)
+  findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
+  createtraversalmatrix(d['src'], d['tgt'], [])
+  r = printTraversalMatrix()
+  if (__name__ != '__main__'):
+    return r
 
-printTraversalMatrix()
-sys.exit()
+if __name__ == '__main__':
+  main(sys.argv)
