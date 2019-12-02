@@ -67,5 +67,37 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.isValidPGVersion('9.3.0'), 1)
     self.assertEqual(pgvernum.isValidPGVersion('11.1'), 1)
 
+  def test_getMajorPGVersion_positives(self):
+    self.assertEqual(pgvernum.getMajorPGVersion('9.3.0'), 9.3)
+    self.assertEqual(pgvernum.getMajorPGVersion('11.1'), 11)
+
+  def test_getMajorPGVersion_negatives(self):
+    self.assertLess(pgvernum.getMajorPGVersion('9.3'), 0)
+    self.assertLess(pgvernum.getMajorPGVersion('11'), 0)
+
+  def test_getMinorPGVersion_positives(self):
+    self.assertEqual(pgvernum.getMinorPGVersion('9.3.0'), 0)
+    self.assertEqual(pgvernum.getMinorPGVersion('11.1'), 1)
+
+  def test_getMinorPGVersion_negatives(self):
+    self.assertLess(pgvernum.getMinorPGVersion('9.3'), 0)
+    self.assertLess(pgvernum.getMinorPGVersion('11'), 0)
+
+  def test_parsePGVersion_positives(self):
+    self.assertEqual(pgvernum.parsePGVersion('9.3.0'), [9.3, 0])
+    self.assertEqual(pgvernum.parsePGVersion('11.1'), [11,1])
+
+  def test_parsePGVersion_negatives(self):
+    self.assertLess(pgvernum.parsePGVersion('9.3'), 0)
+    self.assertLess(pgvernum.parsePGVersion('11'), 0)
+
+  def test_appendMinorVersionIfRequired_positives(self):
+    self.assertEqual(pgvernum.appendMinorVersionIfRequired('9.3'), '9.3.0')
+    self.assertEqual(pgvernum.appendMinorVersionIfRequired('11'), '11.0')
+
+  def test_appendMinorVersionIfRequired_negatives(self):
+    self.assertEqual(pgvernum.appendMinorVersionIfRequired('9.3.2'), '9.3.2')
+    self.assertEqual(pgvernum.appendMinorVersionIfRequired('11.1a'), '11.1a')
+
 if __name__ == '__main__':
   unittest.main()

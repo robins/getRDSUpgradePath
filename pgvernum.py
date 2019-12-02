@@ -1,6 +1,9 @@
-# This script allows importing getPGVersionString() function that converts
-# any Postgres version string (for e.g. v9.3.14) to corresponding
-# Postgres version Number, i.e. 90314.
+# This script allows working with Postgres Version Numbers and tries
+# to provide basic modules around it. It provides functions to:
+# 1) Conversion - For e.g. getPGVersionString() is a function that
+#    converts any Postgres version string (for e.g. v9.3.14) to
+#    corresponding version Number - i.e. 90314
+# 2) Validity - For e.g. IsValidPGVersion() allows validity checks
 
 # Note: It also takes care of the new Version numbering system in effect
 # since Postgres v10+
@@ -93,27 +96,63 @@ def isValidPGVersion(s, debug = default_debug_level):
 
   return 1
 
+def getMajorPGVersion(s):
+  if (not isValidPGVersion(s)):
+    return -1
 
-def getMajorVersion(s):
-  return
+  dots = s.count('.')
+  x = list(map(int, s.split('.', dots)))
 
-def getMinorVersion(s):
-  return
+  # This is pre-v10
+  if (dots == 2):
+    return float(str(x[0]) + "." + str(x[1]))
+  # This is v10+
+  elif (dots == 1):
+    return float(x[0])
 
+  # We shouldn't reach here. Something went wrong
+  return -2
+
+def getMinorPGVersion(s):
+  if (not isValidPGVersion(s)):
+    return -1
+
+  dots = s.count('.')
+  x = list(map(int, s.split('.', dots)))
+
+  # This is pre-v10
+  if (dots == 2):
+    return x[2]
+  # This is v10+
+  elif (dots == 1):
+    return x[1]
+
+  # We shouldn't reach here. Something went wrong
+  return -2
+
+# Returns a dict of [Major, Minor] if provided a valid PG Version
 def parsePGVersion(s):
 
   if (not isValidPGVersion(s)):
     return -1
 
+  Maj = getMajorPGVersion(s)
+  Min = getMinorPGVersion(s)
 
+  if (Maj >= 0):
+    if (Min >= 0):
+      return [Maj, Min]
 
-
+  return -1
 
 def appendMinorVersionIfRequired(s):
-  if(s.count('.') == 0):
-    return s + ".0"
-  else:
-    return s
+
+  if (not isValidPGVersion(s)):
+    attempt1 = s + ".0"
+    if (isValidPGVersion(attempt1)):
+      return attempt1
+
+  return s
 
 def getPGVersionString(s):
 
