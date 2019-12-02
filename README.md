@@ -218,3 +218,31 @@ Upgrade Steps / Hops: 1
  Path: ['9.4.11', '9.4.12']
 
 ```
+
+## Testing
+
+- We have test coverage for:
+  - Extensive (57 tests) testing coverage for PG Version Number generation module
+  - Travis Integration linked to the above
+  - Limited (but working) test coveraeg for Upgrade path generation
+
+
+### Testing Postgres Version Number generation
+```
+>coverage run test_pgvernum.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+```
+
+### Testing Upgrade Path generation
+```
+>coverage run test_getUpgradePath.py
+.
+----------------------------------------------------------------------
+Ran 1 test in 2.981s
+
+OK
+```

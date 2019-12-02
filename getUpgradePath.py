@@ -248,8 +248,8 @@ def printTraversalMatrix():
       l = len(p) - 1
     cnt+=1
     r = str(p)
-#    if (__name__ == '__main__'):
-    dprint (" Path: " + r, 0)
+    if (__name__ == '__main__'):
+      dprint (" Path: " + r, 0)
     soln.remove(p)
   if (cnt > 1):
     dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
