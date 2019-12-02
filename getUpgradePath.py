@@ -151,6 +151,7 @@ def callaws(src, tgt, engine):
     Engine=engine,
     EngineVersion=src
   )
+
   upgrade_path=resp['DBEngineVersions']
   # Fail if there are no Upgrade paths
   if (not upgrade_path):
@@ -246,8 +247,9 @@ def printTraversalMatrix():
       dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
       l = len(p) - 1
     cnt+=1
-    r = " Path: " + str(p)
-    dprint (r, 0)
+    r = str(p)
+#    if (__name__ == '__main__'):
+    dprint (" Path: " + r, 0)
     soln.remove(p)
   if (cnt > 1):
     dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
