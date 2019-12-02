@@ -4,7 +4,7 @@
 
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
-Some features:
+## End-user features:
 - Compute best (least hops) solution
 - Show *all* possible Upgrade paths (if required)
 - Show computation progress if taking time
@@ -15,9 +15,17 @@ Some features:
   - Source Target same
   - Engine name typos / hint correct spelling
 
+
+## Testing features
+- Currently (2019 Dec 1) the project has:
+  - Extensive coverage for PG Version Number generation module - 57 tests
+    - ^^ with Travis Integration
+  - Limited (but working) test coverage for Upgrade path generation
+
+
 ## Releases
 - Stable: [Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
-- Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.1 )
+- Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.2 )
 
 ## Sample Runs
 ```
@@ -218,13 +226,6 @@ Upgrade Steps / Hops: 1
  Path: ['9.4.11', '9.4.12']
 
 ```
-
-## Testing
-
-- We have test coverage for:
-  - Extensive (57 tests) testing coverage for PG Version Number generation module
-  - Travis Integration linked to the above
-  - Limited (but working) test coveraeg for Upgrade path generation
 
 
 ### Testing Postgres Version Number generation
