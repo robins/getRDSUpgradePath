@@ -9,16 +9,18 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.getPGVersionString('10.14'), 100014)
     self.assertEqual(pgvernum.getPGVersionString('11.1'), 110001)
     self.assertEqual(pgvernum.getPGVersionString('9.3.14'), 90314)
+    self.assertEqual(pgvernum.getPGVersionString('11.9999'), 119999)
+    self.assertEqual(pgvernum.getPGVersionString('9.3.99'), 90399)
+    self.assertEqual(pgvernum.getPGVersionString('9.99.1'), 99901)
 
   def test_getPGVersionString_negatives(self):
-    self.assertEqual(pgvernum.getPGVersionString('9.3'), 0)
-    self.assertEqual(pgvernum.getPGVersionString('9.3.1.1'), 0)
-    self.assertEqual(pgvernum.getPGVersionString('9.3.1a'), 0)
-    self.assertEqual(pgvernum.getPGVersionString('10'), 0)
     self.assertEqual(pgvernum.getPGVersionString('9'), 0)
-    self.assertEqual(pgvernum.getPGVersionString('10.1.1'), 0)
-    self.assertEqual(pgvernum.getPGVersionString('10.1b'), 0)
+    self.assertEqual(pgvernum.getPGVersionString('9.6'), 0)
     self.assertEqual(pgvernum.getPGVersionString('10'), 0)
+    self.assertEqual(pgvernum.getPGVersionString('9.3.1.1'), 0)
+    self.assertEqual(pgvernum.getPGVersionString('10.1.1'), 0)
+    self.assertEqual(pgvernum.getPGVersionString('9.3.1a'), 0)
+    self.assertEqual(pgvernum.getPGVersionString('10.1b'), 0)
 
   def test_isValidPGVersion_negatives(self):
     self.assertEqual(pgvernum.isValidPGVersion(''), 0)
@@ -57,6 +59,9 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.isValidPGVersion('11..'), 0)
     self.assertEqual(pgvernum.isValidPGVersion('11.'), 0)
     self.assertEqual(pgvernum.isValidPGVersion('11.1.'), 0)
+    self.assertEqual(pgvernum.isValidPGVersion('11.10000'), 0)
+    self.assertEqual(pgvernum.isValidPGVersion('9.6.100'), 0)
+    self.assertEqual(pgvernum.isValidPGVersion('9.100.10'), 0)
 
   def test_isValidPGVersion_positives(self):
     self.assertEqual(pgvernum.isValidPGVersion('9.3.0'), 1)

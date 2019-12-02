@@ -70,16 +70,25 @@ def isValidPGVersion(s, debug = default_debug_level):
 
   x = list(map(int, s.split('.', dots)))
 
-  # v10+ should not have more than 1 dot
   if (dots == 2):
+    # v10+ should not have more than 1 dot
     if (x[0]>=10):
       dprint("Invalid Version String. v10+ shouldn't have more than one period / dot (.) - " + s, debug)
       return 0
+    if (x[2] >= 100):
+      dprint("Invalid Version String. Minor version should be less than 100 - " + s, debug)
+      return 0
+    if (x[1] >= 100):
+      dprint("Invalid Version String. Right digit of Major version (9.x) should be <100 - " + s, debug)
+      return 0
 
-  # pre-v10 should have more than 1 dot
   if (dots == 1):
+    # pre-v10 should have more than 1 dot
     if (x[0]<10):
       dprint("Invalid Version String. Should have both Major and Minor versions - " + s, debug)
+      return 0
+    if (x[1] >= 10000):
+      dprint("Invalid Version String. Minor Version should be less than 10000 - " + s, debug)
       return 0
 
   return 1
