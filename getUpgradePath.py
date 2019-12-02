@@ -110,11 +110,11 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
       d['tgt'] = appendMinorVersionIfRequired(d['tgt'])
       dprint("Target Version corrected to - " + d['tgt'])
 
-    if (int(getPGVersionString(d['src']))<0):
+    if (int(getPGVersionString(d['src'])) == 0):
       dexit('Source Engine Version is invalid: ' + d['src'])
-    if (int(getPGVersionString(d['tgt']) < 0)):
+    if (int(getPGVersionString(d['tgt']) == 0)):
       dexit('Target Engine Version is invalid: ' + d['tgt'])
-    if ((getPGVersionString(d['src']) > getPGVersionString(d['tgt']))):
+    if ((getPGVersionString(d['src']) >= getPGVersionString(d['tgt']))):
       dexit ('Cannot upgrade from newer to older version: ' + d['src'] + ' -> ' + d['tgt'])
 
   # We've already done basic check on version numbers, so an error here may not
@@ -182,7 +182,7 @@ def findAdjacentUpgrades(src, tgt, engine):
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
-      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(tgt))):
+      if ((getPGVersionString(k['EngineVersion']) >= getPGVersionString(tgt))):
         dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
         continue
 
@@ -238,18 +238,18 @@ def printTraversalMatrix():
     p = min(soln, key=lambda x: len(x))
     if (l != (len(p)-1)):
       if (cnt > 1):
-        print (" ^^ " + str(cnt) + " upgrade paths found")
+        dprint (" ^^ " + str(cnt) + " upgrade paths found", 1)
         cnt=0
       if (len(p) - 1 > hops_desired):
         return
-      print ()
-      print ("Upgrade Steps / Hops: " + str(len(p) - 1))
+      dprint ("",1)
+      dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
       l = len(p) - 1
     cnt+=1
-    print (" Path: " + str(p))
+    dprint (" Path: " + str(p), 0)
     soln.remove(p)
   if (cnt > 1):
-    print (" ^^ " + str(cnt) + " upgrade paths found")
+    dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
 
 d = dict()
 start_time = time.time()

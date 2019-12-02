@@ -1,5 +1,5 @@
 import unittest
-import pgvernum
+import getUpgradePath
 
 class TestMethods(unittest.TestCase):
   def test_getPGVersionString(self):
