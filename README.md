@@ -18,7 +18,7 @@ Python script to find an Upgrade path (from source Version to Target) for any of
 
 ## Testing features
 - Currently (2019 Dec 1) the project has:
-  - Extensive coverage for PG Version Number generation module - 57 tests
+  - Extensive coverage for PG Version Number generation module - 100+ tests
     - ^^ with Travis Integration
   - Limited (but working) test coverage for Upgrade path generation
 
