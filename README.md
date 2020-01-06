@@ -14,10 +14,11 @@ Python script to find an Upgrade path (from source Version to Target) for any of
   - Source version newer
   - Source Target same
   - Engine name typos / hint correct spelling
+  - Auto-correct PG Versions
 
 
 ## Testing features
-- Currently (2019 Dec 1) the project has:
+- Currently (2019 Dec 2) the project has:
   - Extensive coverage for PG Version Number generation module - 100+ tests
     - ^^ with Travis Integration
   - Limited (but working) test coverage for Upgrade path generation

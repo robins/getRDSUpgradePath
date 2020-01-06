@@ -21,6 +21,7 @@ from pgvernum import getPGVersionString
 from pgvernum import appendMinorVersionIfRequired
 from awsrdscli import isValidRDSEngine
 from awsrdscli import getEngineTypoRecommendation
+from awsrdscli import getRegionTypoRecommendation
 
 lookup = {} # 1-step upgrade paths + a flag for whether they are possible
 soln = [] # All steps of (only successful) upgrade paths (from src to tgt)
