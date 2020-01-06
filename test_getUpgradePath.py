@@ -1,7 +1,6 @@
 import unittest
 
 from warnings import filterwarnings
-
 from getUpgradePath import main
 
 class TestMethods(unittest.TestCase):
