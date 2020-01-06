@@ -10,7 +10,20 @@
 
 # In essence this is possibly a travelling saleman problem, and without an
 # exhaustive search it is impossible to rule out whether a faster combination
-# is possible. This is a to-do item here, but hasn't been implemented yet.
+# is possible.
+
+# There are 3 reasons why a source-target combination may not be possible:
+# 1. Target Version was released after Source Version
+#    1a. For e.g. The upgrade from v9.4.23 -> v9.5.15 is not possible. Here the
+#     source version (v9.4.23) was released on 20th Jun 2019 whereas
+#     target version (v9.5.15) was released on 8th Nov 2018. Since the source
+#     version was release before the target version, this upgrade path is not
+#     possible
+#    1b. v9.4.12 -> v9.4.1 is not possible for the same reason as Reason 1a above.
+# 2. Although Postgres community supports a given upgrade combination,
+#    RDS Postgres doesn't support it yet.
+# 3. Although Postgres community supports a given version, RDS Postgres doesn't
+#    support it yet.
 
 import sys
 import boto3
@@ -172,6 +185,8 @@ def findAdjacentUpgrades(src, tgt, engine):
 
   upgrade_path = callaws(src, tgt, engine)
 
+  dprint ('CLI output: ' + str(upgrade_path), 6)
+
   if (not upgrade_path):
     if not (src in lookup):
       lookup[src]={}
@@ -181,6 +196,7 @@ def findAdjacentUpgrades(src, tgt, engine):
   k2 = []
   # print (str(upgrade_path))
   for k in reversed(upgrade_path[0]['ValidUpgradeTarget']):
+    dprint('Possible Upgrade Target: ' + k['EngineVersion'], 6)
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
@@ -193,8 +209,15 @@ def findAdjacentUpgrades(src, tgt, engine):
       lookup[src]={}
     lookup[src][k['EngineVersion']] = 1
 
-  dprint ('Valid targets: ' + '  '.join(k2), 4)
-  dprint ('Cache: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
+  if not k2:
+    dprint ('Valid targets: ' + 'NA', 4)
+  else:
+    dprint ('Valid targets: ' + '  '.join(k2), 4)
+
+  if not lookup:
+    dprint ('Cache: NA', 4)
+  else:
+    dprint ('Cache: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
 
   # Process the list in reversed order since ideally
   # the target is expected to be a recent Minor Version
@@ -213,8 +236,10 @@ def findAdjacentUpgrades(src, tgt, engine):
 def createtraversalmatrix(src, tgt, path):
   global soln
 
-  dprint("Src: " + src, 6)
-  dprint("Tgt: " + tgt, 6)
+  dprint("Arg Src: " + src, 6)
+  dprint("Arg Tgt: " + tgt, 6)
+  dprint("ArgPath: " + str(path), 6)
+
   l = len(soln)
   if (l>0):
     if (((l < 100000) and (l % 1000 == 0))):
@@ -222,20 +247,28 @@ def createtraversalmatrix(src, tgt, path):
 
   if (src == tgt):
     path.append(tgt)
-    # dprint ("Path1: " + str(path), 6)
+#    dprint ("Path1: " + str(path), 6)
     if not (path in soln):
       soln.append(path)
     dprint("Soln: " + str(soln), 6)
   else:
+    dprint ('Lookup: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 6)
     for e in lookup[src]:
-      p = path[:]
-      p.append(src)
-      # dprint ("Path: " + str(p), 6)
-      createtraversalmatrix(e, tgt, p)
+      if (lookup[src][e] == 1):
+        dprint ("Src: " + src, 6)
+        p = path[:]
+        p.append(src)
+        dprint ("Path: " + str(p), 6)
+        createtraversalmatrix(e, tgt, p)
 
 def printTraversalMatrix():
   l = 0
   cnt=0
+
+  if not soln:
+    r="Upgrade path not found"
+    dprint(r, 0)
+
   while soln:
     p = min(soln, key=lambda x: len(x))
     if (l != (len(p)-1)):
