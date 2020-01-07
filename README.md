@@ -14,13 +14,17 @@ Python script to find an Upgrade path (from source Version to Target) for any of
   - Source version newer
   - Source Target same
   - Engine name typos / hint correct spelling
-  - Auto-correct PG Versions
-
+- Suggest typo corrections for
+  - Engine Name
+  - Ending Version
+  - AWS Region Name
+- Auto-Correct
+  - Engine Minor Version Number
 
 ## Testing features
 - Currently (2019 Dec 2) the project has:
   - Extensive coverage for PG Version Number generation module - 100+ tests
-    - ^^ with Travis Integration
+    - Travis integration for all commits
   - Limited (but working) test coverage for Upgrade path generation
 
 
@@ -53,6 +57,11 @@ Cannot upgrade from newer to older version: 9.3.12 -> 9.3.11
 >py getUpgradePath.py 9.3.12 9.3.11 auroapostgres
 Invalid Engine: auroapostgres
 Hint: May be you meant - aurora-postgresql
+
+=== Auto-Correct trivial errors - (Minor version not provided) ===
+>py getUpgradePath.py 9.4.23 9.5 postgres
+Target Version corrected to - 9.5.0
+Target Engine Version is not supported in RDS: 9.5.0
 
 === Show 1 Hop (direct upgrade) results by default ===
 >py getUpgradePath.py 9.6.15 10.10
@@ -245,6 +254,15 @@ OK
 .
 ----------------------------------------------------------------------
 Ran 1 test in 2.981s
+
+OK
+```
+### Testing RDS CLI related aspects
+```
+C:\Users\tharar\Documents\sync\drive\proj\getRDSUpgradePath>py test_awsrdscli.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 6.668s
 
 OK
 ```
