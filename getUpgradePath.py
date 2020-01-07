@@ -185,8 +185,6 @@ def findAdjacentUpgrades(src, tgt, engine):
 
   upgrade_path = callaws(src, tgt, engine)
 
-  dprint ('CLI output: ' + str(upgrade_path), 6)
-
   if (not upgrade_path):
     if not (src in lookup):
       lookup[src]={}
@@ -200,7 +198,7 @@ def findAdjacentUpgrades(src, tgt, engine):
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
-      if ((getPGVersionString(k['EngineVersion']) >= getPGVersionString(tgt))):
+      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(tgt))):
         dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
         continue
 
@@ -267,26 +265,27 @@ def printTraversalMatrix():
 
   if not soln:
     r="Upgrade path not found"
-    dprint(r, 0)
+    dprint(r, 1)
+  else:
+    while soln:
+      p = min(soln, key=lambda x: len(x))
+      if (l != (len(p)-1)):
+        if (cnt > 1):
+          dprint (" ^^ " + str(cnt) + " upgrade paths found", 1)
+          cnt=0
+        if (len(p) - 1 > hops_desired):
+          return
+        dprint ("",1) 
+        dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
+        l = len(p) - 1
+      cnt+=1
+      r = str(p)
+      if (__name__ == '__main__'):
+        dprint (" Path: " + r, 0)
+      soln.remove(p)
+    if (cnt > 1):
+      dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
 
-  while soln:
-    p = min(soln, key=lambda x: len(x))
-    if (l != (len(p)-1)):
-      if (cnt > 1):
-        dprint (" ^^ " + str(cnt) + " upgrade paths found", 1)
-        cnt=0
-      if (len(p) - 1 > hops_desired):
-        return
-      dprint ("",1)
-      dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
-      l = len(p) - 1
-    cnt+=1
-    r = str(p)
-    if (__name__ == '__main__'):
-      dprint (" Path: " + r, 0)
-    soln.remove(p)
-  if (cnt > 1):
-    dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
   if (__name__ != '__main__'):
     return r
 
