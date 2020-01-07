@@ -26,7 +26,7 @@ Python script to find an Upgrade path (from source Version to Target) for any of
 
 ## Releases
 - Stable: [Download](https://github.com/robins/getRDSUpgradePath/releases/tag/v1.0)
-- Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.2 )
+- Dev: [Download]( https://github.com/robins/getRDSUpgradePath/releases/tag/v1.3 )
 
 ## Sample Runs
 ```
