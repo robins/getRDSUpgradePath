@@ -20,10 +20,10 @@
 #     version was release before the target version, this upgrade path is not
 #     possible
 #    1b. v9.4.12 -> v9.4.1 is not possible for the same reason as Reason 1a above.
-# 2. Although Postgres community supports a given upgrade combination,
-#    RDS Postgres doesn't support it yet.
-# 3. Although Postgres community supports a given version, RDS Postgres doesn't
+# 2. Although Postgres community supports a given version, RDS Postgres doesn't
 #    support it yet.
+# 3. Although Postgres community supports an upgrade combination, RDS Postgres
+#    doesn't support it yet.
 
 import sys
 import boto3
