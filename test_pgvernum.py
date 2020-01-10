@@ -101,14 +101,16 @@ class TestMethods(unittest.TestCase):
 
   def test_getVerReleasedDate_positives(self):
     self.assertEqual(pgvernum.getVerReleasedDate('12.1'), '2019-11-14')
+    self.assertEqual(pgvernum.getVerReleasedDate('12.0'), '2019-10-03')
+    self.assertEqual(pgvernum.getVerReleasedDate('10.1'), '2017-11-09')
 
   def test_getVerReleasedDate_negatives(self):
     self.assertEqual(pgvernum.getVerReleasedDate('12.100'), '0')
 
   def test_isVerReleasedAfter_positives(self):
     self.assertEqual(pgvernum.isVerReleasedAfter('12.1', '2018-12-31'), 1)
-
+    self.assertEqual(pgvernum.isVerReleasedAfter('9.3.4', '2000-12-31'), 1)
 
 
 if __name__ == '__main__':
-  unittest.main()
+  unittest.main(failfast=True)
