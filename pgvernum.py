@@ -1,6 +1,6 @@
 # This script allows working with Postgres Version Numbers and tries
 # to provide basic modules around it. It provides functions to:
-# 1) Conversion - For e.g. getPGVersionString() is a function that
+# 1) Conversion - For e.g. getPGVerNumFromString() is a function that
 #    converts any Postgres version string (for e.g. v9.3.14) to
 #    corresponding version Number - i.e. 90314
 # 2) Validity - For e.g. IsValidPGVersion() allows validity checks
@@ -154,7 +154,7 @@ def appendMinorVersionIfRequired(s):
 
   return s
 
-def getPGVersionString(s):
+def getPGVerNumFromString(s):
 
   if (not isValidPGVersion(s)):
     return 0
@@ -178,4 +178,4 @@ def getPGVersionString(s):
 #else:
 #  dexit('Invalid number of arguments - ' + str(len(sys.argv)))
 
-#print (getPGVersionString(s))
+#print (getPGVerNumFromString(s))

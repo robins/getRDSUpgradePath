@@ -30,7 +30,7 @@ import boto3
 import re
 import time
 
-from pgvernum import getPGVersionString
+from pgvernum import getPGVerNumFromString
 from pgvernum import appendMinorVersionIfRequired
 from awsrdscli import isValidRDSEngine
 from awsrdscli import getEngineTypoRecommendation
@@ -124,11 +124,11 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
       d['tgt'] = appendMinorVersionIfRequired(d['tgt'])
       dprint("Target Version corrected to - " + d['tgt'])
 
-    if (int(getPGVersionString(d['src'])) == 0):
+    if (int(getPGVerNumFromString(d['src'])) == 0):
       dexit('Source Engine Version is invalid: ' + d['src'])
-    if (int(getPGVersionString(d['tgt']) == 0)):
+    if (int(getPGVerNumFromString(d['tgt']) == 0)):
       dexit('Target Engine Version is invalid: ' + d['tgt'])
-    if ((getPGVersionString(d['src']) >= getPGVersionString(d['tgt']))):
+    if ((getPGVerNumFromString(d['src']) >= getPGVerNumFromString(d['tgt']))):
       dexit ('Cannot upgrade from newer to older version: ' + d['src'] + ' -> ' + d['tgt'])
 
   # We've already done basic check on version numbers, so an error here may not
@@ -198,7 +198,7 @@ def findAdjacentUpgrades(src, tgt, engine):
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
-      if ((getPGVersionString(k['EngineVersion']) > getPGVersionString(tgt))):
+      if ((getPGVerNumFromString(k['EngineVersion']) > getPGVerNumFromString(tgt))):
         dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
         continue
 
