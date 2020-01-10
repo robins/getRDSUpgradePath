@@ -4,6 +4,9 @@
 
 Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
 
+## Requirements
+- TextDistance - https://pypi.org/project/textdistance/
+
 ## End-user features:
 - Compute best (least hops) solution
 - Show *all* possible Upgrade paths (if required)
