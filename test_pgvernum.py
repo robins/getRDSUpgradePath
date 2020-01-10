@@ -99,5 +99,16 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.appendMinorVersionIfRequired('9.3.2'), '9.3.2')
     self.assertEqual(pgvernum.appendMinorVersionIfRequired('11.1a'), '11.1a')
 
+  def test_getVerReleasedDate_positives(self):
+    self.assertEqual(pgvernum.getVerReleasedDate('12.1'), '2019-11-14')
+
+  def test_getVerReleasedDate_negatives(self):
+    self.assertEqual(pgvernum.getVerReleasedDate('12.100'), '0')
+
+  def test_isVerReleasedAfter_positives(self):
+    self.assertEqual(pgvernum.isVerReleasedAfter('12.1', '2018-12-31'), 1)
+
+
+
 if __name__ == '__main__':
   unittest.main()

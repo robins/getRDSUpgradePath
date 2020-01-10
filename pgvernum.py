@@ -24,16 +24,22 @@
 
 import sys
 import re
+from datetime import datetime
 
 debug_level = 0
 default_debug_level = 1
+
+verReleaseDates = {
+  '120001': 20191114
+}
 
 def dprint(s, debug = default_debug_level):
   if (debug_level >= debug):
     print (s)
 
-def isValidPGVersion(s, debug = default_debug_level):
+def isValidPGVersion(_s, debug = default_debug_level):
 
+  s= str(_s)
   # Old (v9.3.1) or New (v11.0) require at least 4 characters for
   # being a valid version string
   if (len(s)<4):
@@ -173,9 +179,48 @@ def getPGVerNumFromString(s):
       versionnum += x[2]
   return versionnum
 
-#if len(sys.argv) == 2:
-#  s = sys.argv[1]
-#else:
-#  dexit('Invalid number of arguments - ' + str(len(sys.argv)))
+def getVerReleasedDate(v):
+  global verReleaseDates
 
-#print (getPGVerNumFromString(s))
+  ver=str(getPGVerNumFromString(v))
+  if isValidPGVersion(ver):
+    return '0'
+
+  if (ver in verReleaseDates):
+    return datetime.strptime(str(verReleaseDates[ver]), '%Y%m%d').strftime('%Y-%m-%d')
+  else:
+    dprint('Release date unavailable for release: ' + ver)
+  return '0'
+
+def isVerReleasedAfter(v, dt):
+  global verReleaseDates
+
+  ver=str(getPGVerNumFromString(v))
+
+# XXX: Currently assuming that v is a valid version NUMBER (not string)
+#  if not isValidPGVersion(ver):
+#    return 0
+
+  if (ver in verReleaseDates):
+    t=int(datetime.strptime(str(dt), '%Y-%m-%d').strftime('%Y%m%d'))
+
+    if verReleaseDates[ver]>t:
+      return 1
+  else:
+    dprint('Release date unavailable for release: ' + v)
+
+  return 0
+
+def main(argv):
+  if len(sys.argv) == 2:
+    s = sys.argv[1]
+  else:
+    dprint('Invalid number of arguments - ' + str(len(sys.argv)), 0)
+    exit()
+  print (getVerReleasedDate(s))
+
+  if (__name__ != '__main__'):
+    return r
+
+if (__name__ == '__main__'):
+  main(sys.argv)
