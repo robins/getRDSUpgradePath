@@ -32,6 +32,9 @@ import time
 
 from pgvernum import getPGVerNumFromString
 from pgvernum import appendMinorVersionIfRequired
+from pgvernum import IsVerReleasedAfter
+from pgvernum import getVerReleasedDate
+from pgvernum import isValidPGVersion
 from awsrdscli import isValidRDSEngine
 from awsrdscli import getEngineTypoRecommendation
 from awsrdscli import getRegionTypoRecommendation
@@ -183,6 +186,11 @@ def findAdjacentUpgrades(src, tgt, engine):
   else:
     dprint('Caching disabled', 3)
 
+  if (isValidPGVersion(src) and (isValidPGVersion(tgt))):
+      if (IsVerReleasedAfter(src, tgt)):
+        dprint ('Skip upgrade check for source v' + src + ' (released on ' + getVerReleasedDate(src) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 3)
+        return
+
   upgrade_path = callaws(src, tgt, engine)
 
   if (not upgrade_path):
@@ -198,6 +206,9 @@ def findAdjacentUpgrades(src, tgt, engine):
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
+      if (IsVerReleasedAfter(k['EngineVersion'], tgt)):
+        dprint ('Skip upgrade check for source v' + k['EngineVersion'] + ' (released on ' + getVerReleasedDate(k['EngineVersion']) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 3)
+        continue
       if ((getPGVerNumFromString(k['EngineVersion']) > getPGVerNumFromString(tgt))):
         dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
         continue
@@ -251,17 +262,20 @@ def createtraversalmatrix(src, tgt, path):
     dprint("Soln: " + str(soln), 6)
   else:
     dprint ('Lookup: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 6)
-    for e in lookup[src]:
-      if (lookup[src][e] == 1):
-        dprint ("Src: " + src, 6)
-        p = path[:]
-        p.append(src)
-        dprint ("Path: " + str(p), 6)
-        createtraversalmatrix(e, tgt, p)
+    if src in lookup:
+      for e in lookup[src]:
+        if (lookup[src][e] == 1):
+          dprint ("Src: " + src, 6)
+          p = path[:]
+          p.append(src)
+          dprint ("Path: " + str(p), 6)
+          createtraversalmatrix(e, tgt, p)
 
 def printTraversalMatrix():
+  global hops_desired
   l = 0
   cnt=0
+  printed_something=0
 
   if not soln:
     r="Upgrade path not found"
@@ -274,7 +288,12 @@ def printTraversalMatrix():
           dprint (" ^^ " + str(cnt) + " upgrade paths found", 1)
           cnt=0
         if (len(p) - 1 > hops_desired):
-          return
+          if not printed_something:
+            dprint ('')
+            dprint ('There were no Upgrade paths within ' + str(hops_desired) + " hop(s). The simplest upgrade requires at least " + str(len(p) - 1) + ' hops')
+            hops_desired = len(p) - 1
+          else:
+            return
         dprint ("",1) 
         dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
         l = len(p) - 1
@@ -282,6 +301,7 @@ def printTraversalMatrix():
       r = str(p)
       if (__name__ == '__main__'):
         dprint (" Path: " + r, 0)
+        printed_something = 1
       soln.remove(p)
     if (cnt > 1):
       dprint (" ^^ " + str(cnt) + " upgrade paths found",1)
