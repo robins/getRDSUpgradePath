@@ -62,6 +62,7 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.isValidPGVersion('11.10000'), 0)
     self.assertEqual(pgvernum.isValidPGVersion('9.6.100'), 0)
     self.assertEqual(pgvernum.isValidPGVersion('9.100.10'), 0)
+    self.assertEqual(pgvernum.isValidPGVersion('#'), 0)
 
   def test_isValidPGVersion_positives(self):
     self.assertEqual(pgvernum.isValidPGVersion('9.3.0'), 1)
@@ -106,11 +107,33 @@ class TestMethods(unittest.TestCase):
 
   def test_getVerReleasedDate_negatives(self):
     self.assertEqual(pgvernum.getVerReleasedDate('12.100'), '0')
+    self.assertEqual(pgvernum.getVerReleasedDate('12.'), '0')
+    self.assertEqual(pgvernum.getVerReleasedDate('12.a'), '0')
+    self.assertEqual(pgvernum.getVerReleasedDate('1232'), '0')
+    self.assertEqual(pgvernum.getVerReleasedDate('-1'), '0')
 
-  def test_isVerReleasedAfter_positives(self):
-    self.assertEqual(pgvernum.isVerReleasedAfter('12.1', '2018-12-31'), 1)
-    self.assertEqual(pgvernum.isVerReleasedAfter('9.3.4', '2000-12-31'), 1)
+  def test_IsVerReleasedAfter_positives(self):
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '11.5'), 1)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('9.4.23', '9.5.15'), 1)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.0', '12.1'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '11.6'), 0)
 
+  def test_IsVerReleasedAfter_negatives(self):
+    self.assertEqual(pgvernum.IsVerReleasedAfter('121', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('121', '120'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '120'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', 'a'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', ''), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '#'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '.'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '..'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('12.1', '...'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('a', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('.', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('..', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('...', '12.0'), 0)
+    self.assertEqual(pgvernum.IsVerReleasedAfter('#', '12.0'), 0)
 
 if __name__ == '__main__':
   unittest.main(failfast=True)

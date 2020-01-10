@@ -580,7 +580,6 @@ def getVerReleasedDate(ver):
 
   if (ver in verReleaseDates):
     return verReleaseDates[ver]
-    #datetime.strptime(str(verReleaseDates[ver]), '%Y%m%d').strftime('%Y-%m-%d')
   else:
     dprint('Release date unavailable for release: ' + ver)
   return '0'
@@ -588,19 +587,23 @@ def getVerReleasedDate(ver):
 def convToYYYYMMDD(dt):
   return int(datetime.strptime(dt, '%Y-%m-%d').strftime('%Y%m%d'))
 
-def isVerReleasedAfter(ver, dt):
+def IsVerReleasedAfter(v1, v2):
   global verReleaseDates
 
-  if not isValidPGVersion(ver):
+  if not isValidPGVersion(v1):
     return 0
 
-  if (ver in verReleaseDates):
-    t=int(datetime.strptime(str(dt), '%Y-%m-%d').strftime('%Y%m%d'))
+  if not isValidPGVersion(v2):
+    return 0
 
-    if (convToYYYYMMDD(verReleaseDates[ver])>t):
-      return 1
+  if (v1 in verReleaseDates) and (v2 in verReleaseDates):
+    if (v1 in verReleaseDates) and (v2 in verReleaseDates):
+      if (convToYYYYMMDD(verReleaseDates[v1])>convToYYYYMMDD(verReleaseDates[v2])):
+        return 1
+    else:
+      dprint('Release date unavailable for release: ' + v2)
   else:
-    dprint('Release date unavailable for release: ' + v)
+    dprint('Release date unavailable for release: ' + v1)
 
   return 0
 
