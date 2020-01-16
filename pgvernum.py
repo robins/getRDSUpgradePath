@@ -495,7 +495,8 @@ def isValidPGVersion(_s, debug = default_debug_level):
 
   return 1
 
-def getMajorPGVersion(s):
+def getMajorPGVersion(v):
+  s=appendMinorVersionIfRequired(v)
   if (not isValidPGVersion(s)):
     return -1
 
@@ -507,7 +508,7 @@ def getMajorPGVersion(s):
     return float(str(x[0]) + "." + str(x[1]))
   # This is v10+
   elif (dots == 1):
-    return float(x[0])
+    return int(x[0])
 
   # We shouldn't reach here. Something went wrong
   return -2
@@ -617,3 +618,5 @@ def main(argv):
 
 if (__name__ == '__main__'):
   main(sys.argv)
+
+#getMajorPGVersion(sys.argv[1])

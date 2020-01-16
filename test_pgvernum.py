@@ -69,12 +69,16 @@ class TestMethods(unittest.TestCase):
     self.assertEqual(pgvernum.isValidPGVersion('11.1'), 1)
 
   def test_getMajorPGVersion_positives(self):
+    self.assertEqual(pgvernum.getMajorPGVersion('9.3'), 9.3)
     self.assertEqual(pgvernum.getMajorPGVersion('9.3.0'), 9.3)
     self.assertEqual(pgvernum.getMajorPGVersion('11.1'), 11)
+    self.assertEqual(pgvernum.getMajorPGVersion('11.0'), 11)
+    self.assertEqual(pgvernum.getMajorPGVersion('11'), 11)
 
   def test_getMajorPGVersion_negatives(self):
-    self.assertLess(pgvernum.getMajorPGVersion('9.3'), 0)
-    self.assertLess(pgvernum.getMajorPGVersion('11'), 0)
+    self.assertLess(pgvernum.getMajorPGVersion('9'), 0)
+    self.assertLess(pgvernum.getMajorPGVersion('11.2.2'), 0)
+    self.assertLess(pgvernum.getMajorPGVersion('a'), 0)
 
   def test_getMinorPGVersion_positives(self):
     self.assertEqual(pgvernum.getMinorPGVersion('9.3.0'), 0)
