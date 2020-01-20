@@ -21,6 +21,13 @@
 # >py pgvernum.py 11.1
 # 110001
 
+# Sample runs for the Unit Tests
+#>py test_pgvernum.py
+#................
+#----------------------------------------------------------------------
+#Ran 16 tests in 0.006s
+#
+#OK
 
 import sys
 import re
