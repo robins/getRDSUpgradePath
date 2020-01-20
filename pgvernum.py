@@ -4,6 +4,13 @@
 #    converts any Postgres version string (for e.g. v9.3.14) to
 #    corresponding version Number - i.e. 90314
 # 2) Validity - For e.g. IsValidPGVersion() allows validity checks
+# 3) Parsing - For e.g. PargePGVersion()
+# 4) Auto-Correction - For e.g. appendMinorVersionIfRequired()
+# 5) Historical Info
+#    For e.g. getVerReleasedDate() - returns Version release date
+#             IsVerReleasedAfter() - Whether Ver X was released before Y
+
+# Original Source: https://github.com/robins/getRDSUpgradePath/blob/master/pgvernum.py
 
 # Note: It also takes care of the new Version numbering system in effect
 # since Postgres v10+
