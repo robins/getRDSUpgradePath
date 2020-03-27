@@ -62,12 +62,12 @@ def validateCLIArgsOrFail(argv):
   # Basic bash argument count check
   if ((len(argv) < 3) or (len(argv) > 6)):
     print("""
-Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
+  Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
 
-Source / Target Versions are Mandatory. Optionally, you may also provide:
-  Engine: RDS Database Engine | Default:postgres
-  Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
-  Verbosity: Verbosity of the output | Default:1 | Range:1-5""")
+  Source / Target Versions are Mandatory. Optionally, you may also provide:
+    Engine: RDS Database Engine | Default:postgres
+    Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
+    Verbosity: Verbosity of the output | Default:1 | Range:1-5""")
     sys.exit()
 
   # The last argument is for Debug Level
@@ -154,9 +154,9 @@ def cachelookup(src, tgt):
         return 1
       else:
         dprint ('Cache: Combination not possible: '  + src + '->' + tgt, 3)
-        return 0
+        return -1
   dprint ('Cache: Combination not found: ' + src + '->' + tgt, 3)
-  return -1
+  return 0
 
 def callaws(src, tgt, engine):
 
@@ -176,19 +176,25 @@ def callaws(src, tgt, engine):
   else:
     return upgrade_path
 
-def findAdjacentUpgrades(src, tgt, engine):
+def findAdjacentUpgrades(src, tgt, engine, hops_desired):
   global lookup
+
+  if (hops_desired < 0):
+    dprint('hops < 0. Not diving deeper', 4)
+    return
+  else:
+    dprint ('hops = ' + str(hops_desired), 5)
 
   if (enable_caching):
     t = cachelookup(src, tgt)
-    if (t >= 0):
+    if (t >= 1):
       return
   else:
     dprint('Caching disabled', 3)
 
   if (isValidPGVersion(src) and (isValidPGVersion(tgt))):
       if (IsVerReleasedAfter(src, tgt)):
-        dprint ('Skip upgrade check for source v' + src + ' (released on ' + getVerReleasedDate(src) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 3)
+        dprint ('Skip upgrade check for source v' + src + ' (released on ' + getVerReleasedDate(src) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 5)
         return
 
   upgrade_path = callaws(src, tgt, engine)
@@ -202,16 +208,17 @@ def findAdjacentUpgrades(src, tgt, engine):
   k2 = []
   # print (str(upgrade_path))
   for k in reversed(upgrade_path[0]['ValidUpgradeTarget']):
-    dprint('Possible Upgrade Target: ' + k['EngineVersion'], 6)
 
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
       if (IsVerReleasedAfter(k['EngineVersion'], tgt)):
-        dprint ('Skip upgrade check for source v' + k['EngineVersion'] + ' (released on ' + getVerReleasedDate(k['EngineVersion']) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 3)
+        dprint ('Skip upgrade check for source v' + k['EngineVersion'] + ' (released on ' + getVerReleasedDate(k['EngineVersion']) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 5)
         continue
       if ((getPGVerNumFromString(k['EngineVersion']) > getPGVerNumFromString(tgt))):
-        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 3)
+        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 5)
         continue
+
+    dprint('Possible Upgrade Target: ' + k['EngineVersion'], 6)
 
     k2.append(k['EngineVersion'])
     if not (src in lookup):
@@ -219,7 +226,7 @@ def findAdjacentUpgrades(src, tgt, engine):
     lookup[src][k['EngineVersion']] = 1
 
   if not k2:
-    dprint ('Valid targets: ' + 'NA', 4)
+    dprint ('Valid targets: ' + 'NA', 3)
   else:
     dprint ('Valid targets: ' + '  '.join(k2), 4)
 
@@ -232,7 +239,7 @@ def findAdjacentUpgrades(src, tgt, engine):
   # the target is expected to be a recent Minor Version
   for k in (k2):
     if not (k == tgt):
-      findAdjacentUpgrades(k, tgt, engine)
+      findAdjacentUpgrades(k, tgt, engine, hops_desired - 1)
 
   # If we reached here, it means this upgrade path isn't possible
   # We mark that and proceed with next possible combination
@@ -256,7 +263,7 @@ def createtraversalmatrix(src, tgt, path):
 
   if (src == tgt):
     path.append(tgt)
-#    dprint ("Path1: " + str(path), 6)
+    # dprint ("Path1: " + str(path), 6)
     if not (path in soln):
       soln.append(path)
     dprint("Soln: " + str(soln), 6)
@@ -310,11 +317,11 @@ def printTraversalMatrix():
     return r
 
 def main(argv):
-  global start_time
+  global start_time, hops_desired
   d = dict()
   start_time = time.time()
   d = validateCLIArgsOrFail(argv)
-  findAdjacentUpgrades(d['src'], d['tgt'], d['engine'])
+  findAdjacentUpgrades(d['src'], d['tgt'], d['engine'], hops_desired)
   createtraversalmatrix(d['src'], d['tgt'], [])
   r = printTraversalMatrix()
   if (__name__ != '__main__'):
