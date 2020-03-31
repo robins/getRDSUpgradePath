@@ -74,8 +74,7 @@ Upgrade Steps / Hops: 1
 
 === Show progress if computation takes longer ===
 >py getUpgradePath.py 5.7.16 8.0.16 mysql
-Found 1000 upgrade paths in 3 seconds
-
+................
 Upgrade Steps / Hops: 1
  Path: ['5.7.16', '8.0.16']
 
@@ -93,11 +92,6 @@ Upgrade Steps / Hops: 1
 
 === Support all engines - RDS MariaDB ===
 >py getUpgradePath.py 10.0.32 10.3.13 mariadb
-Found 1000 upgrade paths in 4 seconds
-Found 2000 upgrade paths in 6 seconds
-Found 3000 upgrade paths in 9 seconds
-Found 4000 upgrade paths in 14 seconds
-Found 5000 upgrade paths in 20 seconds
 
 Upgrade Steps / Hops: 1
  Path: ['10.0.32', '10.3.13']
@@ -237,6 +231,33 @@ Cache: (9.4.11->{'9.4.12': 1})
 
 Upgrade Steps / Hops: 1
  Path: ['9.4.11', '9.4.12']
+
+
+=== Some notoriously difficult Upgrade paths to find ===
+>py getUpgradePath.py 9.3.12 12.2 postgres
+................
+Upgrade path not found. May be you want to increase hop-count and try again.
+
+# Increasing Hop Count to 2 didn't help
+>py getUpgradePath.py 9.3.12 12.2 postgres 2
+....................................................
+Upgrade path not found. May be you want to increase hop-count and try again.
+
+# Increasing Hop Count to 3 finally found a solution
+>py getUpgradePath.py 9.3.12 12.2 postgres 3
+..................................................................
+..................................................................
+..................................................................
+...
+Upgrade Steps / Hops: 3
+ Path: ['9.3.12', '9.4.25', '11.6', '12.2']
+ Path: ['9.3.12', '9.4.24', '11.5', '12.2']
+ Path: ['9.3.12', '9.4.23', '11.4', '12.2']
+ Path: ['9.3.12', '9.4.21', '11.2', '12.2']
+ Path: ['9.3.12', '9.4.20', '11.1', '12.2']
+ ^^ 5 upgrade paths found
+
+
 
 ```
 
