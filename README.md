@@ -2,7 +2,7 @@
 
 ![Coverage](https://api.travis-ci.org/robins/getRDSUpgradePath.svg?branch=master)
 
-Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines
+Python script to find an Upgrade path (from source Version to Target) for any of the AWS RDS Database Engines. This is very convenient for some engines, where the upgrade paths are not obvious and notoriously hard to find (see the last example below).
 
 ## Requirements
 - TextDistance - https://pypi.org/project/textdistance/
