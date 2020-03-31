@@ -564,7 +564,12 @@ def appendMinorVersionIfRequired(s):
   if (not isValidPGVersion(s)):
     attempt1 = s + ".0"
     if (isValidPGVersion(attempt1)):
-      return attempt1
+      # Additionally also check whether we already have this in the lookup list.
+      # This is a best-effort function and unlike in IsValidPGVersion() we can 
+      # rely on the list and fail if it doesn't exist there.
+      # This avoids some scenarios such as v1.1 becomes v.1.1.0, which is wrong.
+      if (attempt1 in verReleaseDates):
+        return attempt1
 
   return s
 

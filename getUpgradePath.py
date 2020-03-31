@@ -103,7 +103,12 @@ def validateCLIArgsOrFail(argv):
     d['engine'] = argv[3]
     if not isValidRDSEngine(d['engine']):
       dprint('Invalid Engine: ' + d['engine'])
-      dprint("Hint: May be you meant - " + getEngineTypoRecommendation(d['engine']))
+
+      # Don't give Engine Typo recommendations for parameter mix-ups in Command Line
+      if (len(d['engine']) > 3):
+        dprint("Hint: May be you meant - " + getEngineTypoRecommendation(d['engine']))
+
+      dprint("Common Engines: postgres, mysql, aurora-postgresql, etc.")
       sys.exit()
   elif len(argv) == 3:
     d['engine'] = 'postgres'
@@ -132,7 +137,7 @@ def validateCLIArgsOrFail(argv):
     if (int(getPGVerNumFromString(d['tgt']) == 0)):
       dexit('Target Engine Version is invalid: ' + d['tgt'])
     if ((getPGVerNumFromString(d['src']) >= getPGVerNumFromString(d['tgt']))):
-      dexit ('Cannot upgrade from newer to older version: ' + d['src'] + ' -> ' + d['tgt'])
+      dexit ('Cannot upgrade from newer to older version: ' + d['src'] + '('  + getVerReleasedDate(d['src']) + ') -> ' + d['tgt'] + '('  + getVerReleasedDate(d['tgt']) + ')')
 
   # We've already done basic check on version numbers, so an error here may not
   # necessarily mean an invalid version. It's possible it isn't supported in RDS (yet)
@@ -179,11 +184,16 @@ def callaws(src, tgt, engine):
 def findAdjacentUpgrades(src, tgt, engine, hops_desired):
   global lookup
 
+  dprint("", 3)
+  dprint("Find Arg Src: " + src, 6)
+  dprint("Find Arg Tgt: " + tgt, 6)
+  dprint("Find ArgPath: " + str(hops_desired), 6)
+
   if (hops_desired < 0):
-    dprint('hops < 0. Not diving deeper', 4)
+    dprint('hops < 0. Not diving deeper', 6)
     return
   else:
-    dprint ('hops = ' + str(hops_desired), 5)
+    dprint ('hops = ' + str(hops_desired), 6)
 
   if (enable_caching):
     t = cachelookup(src, tgt)
@@ -212,10 +222,10 @@ def findAdjacentUpgrades(src, tgt, engine, hops_desired):
     # Avoid CLI calls if possible
     if (engine == 'postgres'):
       if (IsVerReleasedAfter(k['EngineVersion'], tgt)):
-        dprint ('Skip upgrade check for source v' + k['EngineVersion'] + ' (released on ' + getVerReleasedDate(k['EngineVersion']) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 5)
+        dprint ('Skip upgrade check for source v' + k['EngineVersion'] + ' (released on ' + getVerReleasedDate(k['EngineVersion']) + ') after target v' + tgt + ' (released on '+ getVerReleasedDate(tgt) +')', 4)
         continue
       if ((getPGVerNumFromString(k['EngineVersion']) > getPGVerNumFromString(tgt))):
-        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 5)
+        dprint ('Skip upgrade check from newer to older version: ' + k['EngineVersion'] + ' -> ' + tgt, 4)
         continue
 
     dprint('Possible Upgrade Target: ' + k['EngineVersion'], 6)
@@ -233,11 +243,13 @@ def findAdjacentUpgrades(src, tgt, engine, hops_desired):
   if not lookup:
     dprint ('Cache: NA', 4)
   else:
-    dprint ('Cache: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
+    dprint ('Cache:', 4)
+    dprint ("\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 4)
 
   # Process the list in reversed order since ideally
   # the target is expected to be a recent Minor Version
   for k in (k2):
+    # If the next souce-candidate is the target, skip over it
     if not (k == tgt):
       findAdjacentUpgrades(k, tgt, engine, hops_desired - 1)
 
@@ -249,12 +261,19 @@ def findAdjacentUpgrades(src, tgt, engine, hops_desired):
     lookup[src][tgt] = 1002
   return
 
-def createtraversalmatrix(src, tgt, path):
+def createtraversalmatrix(src, tgt, path, hops_desired):
   global soln
 
-  dprint("Arg Src: " + src, 6)
-  dprint("Arg Tgt: " + tgt, 6)
-  dprint("ArgPath: " + str(path), 6)
+  dprint("Traverse Arg Src: " + src, 5)
+
+  if (hops_desired < 0):
+    dprint('hops < 0. Not diving deeper', 7)
+    return
+  else:
+    dprint ('hops = ' + str(hops_desired), 8)
+
+  dprint("Traverse Arg Tgt: " + tgt, 5)
+  dprint("Traverse ArgPath: " + str(path), 5)
 
   l = len(soln)
   if (l>0):
@@ -268,15 +287,17 @@ def createtraversalmatrix(src, tgt, path):
       soln.append(path)
     dprint("Soln: " + str(soln), 6)
   else:
-    dprint ('Lookup: ' + "\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 6)
+    dprint ('Lookup:', 5)
+    dprint ("\n".join('(' + str(e) + '->' + str(lookup[e]) + ')' for e in lookup), 5)
     if src in lookup:
       for e in lookup[src]:
         if (lookup[src][e] == 1):
-          dprint ("Src: " + src, 6)
+          dprint ("Src: " + e, 6)
           p = path[:]
-          p.append(src)
+          p.append(e)
           dprint ("Path: " + str(p), 6)
-          createtraversalmatrix(e, tgt, p)
+          if (hops_desired >0):
+            createtraversalmatrix(e, tgt, p, hops_desired-1)
 
 def printTraversalMatrix():
   global hops_desired
@@ -285,7 +306,7 @@ def printTraversalMatrix():
   printed_something=0
 
   if not soln:
-    r="Upgrade path not found"
+    r="Upgrade path not found. May be you want to increase hop-count and try again."
     dprint(r, 1)
   else:
     while soln:
@@ -322,7 +343,7 @@ def main(argv):
   start_time = time.time()
   d = validateCLIArgsOrFail(argv)
   findAdjacentUpgrades(d['src'], d['tgt'], d['engine'], hops_desired)
-  createtraversalmatrix(d['src'], d['tgt'], [])
+  createtraversalmatrix(d['src'], d['tgt'], [], hops_desired)
   r = printTraversalMatrix()
   if (__name__ != '__main__'):
     return r
