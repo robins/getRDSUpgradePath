@@ -174,6 +174,9 @@ def callaws(src, tgt, engine):
     EngineVersion=src
   )
 
+  print (".", end="")
+  sys.stdout.flush()
+
   upgrade_path=resp['DBEngineVersions']
   # Fail if there are no Upgrade paths
   if (not upgrade_path):
@@ -264,6 +267,7 @@ def findAdjacentUpgrades(src, tgt, engine, hops_desired):
 def createtraversalmatrix(src, tgt, path, hops_desired):
   global soln
 
+  dprint("================", 5)
   dprint("Traverse Arg Src: " + src, 5)
 
   if (hops_desired < 0):
@@ -294,7 +298,11 @@ def createtraversalmatrix(src, tgt, path, hops_desired):
         if (lookup[src][e] == 1):
           dprint ("Src: " + e, 6)
           p = path[:]
-          p.append(e)
+
+          # We intentionally append src and not 'e' since we want the path to start from src
+          # for all these iterations
+          p.append(src)
+
           dprint ("Path: " + str(p), 6)
           if (hops_desired >0):
             createtraversalmatrix(e, tgt, p, hops_desired-1)
@@ -306,7 +314,7 @@ def printTraversalMatrix():
   printed_something=0
 
   if not soln:
-    r="Upgrade path not found. May be you want to increase hop-count and try again."
+    r="\nUpgrade path not found. May be you want to increase hop-count and try again."
     dprint(r, 1)
   else:
     while soln:
