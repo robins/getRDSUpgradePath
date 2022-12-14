@@ -171,7 +171,16 @@ def callaws(src, tgt, engine):
   # Sample CLI: aws rds describe-db-engine-versions --engine=postgres --engine-version=9.3.12
   resp = client.describe_db_engine_versions(
     Engine=engine,
-    EngineVersion=src
+    EngineVersion=src,
+    Filters=[
+      {
+        'Name': 'status',
+        'Values': [
+          'deprecated',
+          'available'
+        ]
+      }
+    ]
   )
 
   print (".", end="")
@@ -330,7 +339,7 @@ def printTraversalMatrix():
             hops_desired = len(p) - 1
           else:
             return
-        dprint ("",1) 
+        dprint ("",1)
         dprint ("Upgrade Steps / Hops: " + str(len(p) - 1),1)
         l = len(p) - 1
       cnt+=1
