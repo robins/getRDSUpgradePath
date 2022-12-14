@@ -38,7 +38,23 @@ Python script to find an Upgrade path (from source Version to Target) for any of
 ## Sample Runs
 ```
 
+
 === Usage / syntax ===
+
+>py getUpgradePath.py 11.17 14.5 postgres
+.....
+Upgrade Steps / Hops: 1
+ Path: ['11.17', '14.5']
+
+
+>py getUpgradepath.py 10.13 14.5 postgres 2
+.....................................................................................................................................................................................................
+Upgrade Steps / Hops: 2
+ Path: ['10.13', '11.17', '14.5']
+ Path: ['10.13', '10.22', '14.5']
+ ^^ 2 upgrade paths found
+
+
 >py getUpgradepath.py
 
 Syntax: python getUpgradePath.py SourceVersion TargetVersion [engine] [hops] [verbosity]
@@ -47,6 +63,41 @@ Source / Target Versions are Mandatory. Optionally, you may also provide:
   Engine: RDS Database Engine | Default:postgres
   Hops: Find all upgrade combinations possible within these many Hops | Default:1 | Range:1-10
   Verbosity: Verbosity of the output | Default:1 | Range:1-5
+```
+
+### Testing Postgres Version Number generation
+```
+>coverage run test_pgvernum.py
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+```
+
+### Testing Upgrade Path generation
+```
+>coverage run test_getUpgradePath.py
+.
+----------------------------------------------------------------------
+Ran 1 test in 2.981s
+
+OK
+```
+### Testing RDS CLI related aspects
+```
+C:\Users\tharar\Documents\sync\drive\proj\getRDSUpgradePath>py test_awsrdscli.py
+...
+----------------------------------------------------------------------
+Ran 3 tests in 6.668s
+
+OK
+```
+
+
+### Other debug / Extra options supported
+
+```
 
 === Catch trivial errors - (Source Target same) ===
 >py getUpgradePath.py 10.6 10.6 postgres
@@ -258,35 +309,4 @@ Upgrade Steps / Hops: 3
  ^^ 5 upgrade paths found
 
 
-
-```
-
-
-### Testing Postgres Version Number generation
-```
->coverage run test_pgvernum.py
-....
-----------------------------------------------------------------------
-Ran 4 tests in 0.002s
-
-OK
-```
-
-### Testing Upgrade Path generation
-```
->coverage run test_getUpgradePath.py
-.
-----------------------------------------------------------------------
-Ran 1 test in 2.981s
-
-OK
-```
-### Testing RDS CLI related aspects
-```
-C:\Users\tharar\Documents\sync\drive\proj\getRDSUpgradePath>py test_awsrdscli.py
-...
-----------------------------------------------------------------------
-Ran 3 tests in 6.668s
-
-OK
 ```
